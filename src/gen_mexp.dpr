@@ -1,3 +1,5 @@
+// JCL_DEBUG_EXPERT_GENERATEJDBG ON
+// JCL_DEBUG_EXPERT_INSERTJDBG ON
 library gen_mexp;
 
 {%ToDo 'gen_mexp.todo'}
@@ -7,13 +9,12 @@ library gen_mexp;
 {%File 'readme.txt'}
 
 uses
-//  FastMove,
   Forms,
   windows,
   shellapi,
   messages,
   sysutils,
-  MyTBits in 'lib\TMyTBits.pas',
+  MyTBits in 'lib\MyTBits.pas',
   Defs in 'Defs.pas',
   MainForm in 'MainForm.pas' {MainForm},
   prefernces in 'prefernces.pas' {pref},
@@ -25,8 +26,8 @@ uses
   inuptbox2U in 'lib\controls\inuptbox2U.pas' {InputBox2},
   OrganizeFiles in 'OrganizeFiles.pas' {OrgFiles},
   TagEditor in 'TagEditor.pas' {Editor},
-  QStringList in 'QStringList.pas',
-  QCSStringList in 'QCSStringList.pas',
+  QStringList in 'lib\QStringList.pas',
+  QCSStringList in 'lib\QCSStringList.pas',
   NetDirTest in 'lib\NetDirTest.pas',
   FileTreePreview in 'FileTreePreview.pas' {FilePreviewForm},
   renameUnit in 'renameUnit.pas' {renameForm},
@@ -36,13 +37,16 @@ uses
   TagCutterUnit in 'TagCutterUnit.pas' {TagCutter},
   cddbUnit in 'cddbUnit.pas' {CddbForm},
   Snap in 'Snap.pas',
-  SpecialPanel in 'lib\controls\SpecialPanel.pas',
   MexpIniFile in 'MexpIniFile.pas',
   ExPopupList in 'lib\controls\ExPopupList.pas',
   MEXPtypes in 'MEXPtypes.pas',
   MyMemoryStream in 'lib\MyMemoryStream.pas',
   RecHashTable in 'RecHashTable.pas',
-  MyId3v2Base in 'lib\audio\MyId3v2Base.pas';
+  MyId3v2Base in 'lib\audio\MyId3v2Base.pas',
+  Id3tags in 'lib\audio\ID3Tags.pas',
+  pngimage in 'lib\pngimage\pngimage.pas',
+  zlibpas in 'lib\pngimage\zlibpas.pas',
+  pnglang in 'lib\pngimage\pnglang.pas';
 
 exports
  	winampGetGeneralPurposePlugin;

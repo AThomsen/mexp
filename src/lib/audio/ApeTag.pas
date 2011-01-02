@@ -19,7 +19,7 @@ unit APEtag;
 interface
 
 uses
-	Classes, SysUtils, QStrings, uniCode;
+	Classes, SysUtils, QStrings, JclStringConversions, JclUnicode;
 
 type
   { Class TAPEtag }

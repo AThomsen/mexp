@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 778
-  Top = 158
+  Left = 679
+  Top = 125
   Cursor = crArrow
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False
@@ -160,7 +160,7 @@ object MainForm: TMainForm
     Transparent = True
     Visible = False
   end
-  object tabelpanel: TSpecialPanel
+  object tabelpanel: TWinampPanel
     Left = 48
     Top = 24
     Width = 473
@@ -171,7 +171,7 @@ object MainForm: TMainForm
     FullRepaint = False
     TabOrder = 0
     InheritedPaint = False
-    object tabelpanellow: TSpecialPanel
+    object tabelpanellow: TWinampPanel
       Left = 158
       Top = 0
       Width = 315
@@ -757,6 +757,7 @@ object MainForm: TMainForm
           end
           item
             Alignment = taRightJustify
+            BiDiMode = bdLeftToRight
             Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 8
             Style = vsOwnerDraw
@@ -765,6 +766,7 @@ object MainForm: TMainForm
           end
           item
             Alignment = taRightJustify
+            BiDiMode = bdLeftToRight
             Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 9
             Style = vsOwnerDraw
@@ -787,6 +789,7 @@ object MainForm: TMainForm
           end
           item
             Alignment = taRightJustify
+            BiDiMode = bdLeftToRight
             Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 12
             Style = vsOwnerDraw
@@ -795,6 +798,7 @@ object MainForm: TMainForm
           end
           item
             Alignment = taRightJustify
+            BiDiMode = bdLeftToRight
             Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 13
             Style = vsOwnerDraw
@@ -838,6 +842,7 @@ object MainForm: TMainForm
           end
           item
             Alignment = taCenter
+            BiDiMode = bdLeftToRight
             Options = [coAllowClick, coDraggable, coEnabled, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 19
             Style = vsOwnerDraw
@@ -936,7 +941,7 @@ object MainForm: TMainForm
         PaintBottom = False
       end
     end
-    object treepanel: TSpecialPanel
+    object treepanel: TWinampPanel
       Left = 0
       Top = 0
       Width = 150
@@ -995,7 +1000,7 @@ object MainForm: TMainForm
         PaintRight = True
         PaintBottom = False
       end
-      object treepanellow: TSpecialPanel
+      object treepanellow: TWinampPanel
         Left = 0
         Top = 0
         Width = 150
@@ -1508,7 +1513,7 @@ object MainForm: TMainForm
       PaintBottom = True
     end
   end
-  object sliderr: TSpecialPanel
+  object sliderr: TWinampPanel
     Left = 48
     Top = 412
     Width = 350
@@ -2436,8 +2441,8 @@ object MainForm: TMainForm
   object groupmenu: TPopupMenu
     Images = imgLstCheckIcons
     OnPopup = groupmenuPopup
-    Left = 592
-    Top = 43
+    Left = 600
+    Top = 11
     object gmenuitem1: TMenuItem
       Caption = 'gmenuitem'
       OnClick = gmenuitem1Click
@@ -2835,6 +2840,7 @@ object MainForm: TMainForm
     Top = 280
   end
   object AutoscanThread: TBMDThread
+    UpdateEnabled = False
     OnExecute = AutoScanThreadExecute
     Left = 560
     Top = 336
@@ -2848,6 +2854,7 @@ object MainForm: TMainForm
   end
   object ScanThread: TBMDThread
     Priority = tpLower
+    UpdateEnabled = False
     OnExecute = ScanThreadExecute
     Left = 560
     Top = 376
@@ -2935,6 +2942,7 @@ object MainForm: TMainForm
   end
   object coverThread: TBMDThread
     Priority = tpLowest
+    UpdateEnabled = False
     OnExecute = coverThreadExecute
     Left = 560
     Top = 416
@@ -3835,6 +3843,7 @@ object MainForm: TMainForm
   end
   object CoverLoadThread: TBMDThread
     Priority = tpLower
+    UpdateEnabled = False
     OnExecute = CoverLoadThreadExecute
     Left = 608
     Top = 336

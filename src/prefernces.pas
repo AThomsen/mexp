@@ -31,13 +31,14 @@ interface
 uses
 	
 	Windows, SysUtils, Classes, Graphics, Controls, Forms,
-	StdCtrls, ExtCtrls, Menus,  FPUrlLabel,
+	StdCtrls, ExtCtrls, Menus,
 	ShellAPI, filectrl, ShlObj, ActiveX,
-	ColorPickerButton, QStrings,
+	QStrings,
 	VirtualTrees, ColorConv,
 	snap, ComCtrls, BMDThread, MexpIniFile, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdHTTP, JvComponent, JvSearchFiles,
   JvColorCombo, Spin, JvListBox, JvCtrls, MEXPtypes, Dialogs, ExtDlgs,
-  CheckLst, JvCombobox, JvComponentBase, JvExStdCtrls, JvTextListBox;
+  CheckLst, JvCombobox, JvComponentBase, JvExStdCtrls, JvTextListBox, JvLinkLabel, JvColorButton,
+  JvExControls, JvColorBox, FPUrlLabel;
 
 type
   Tpref = class(TForm)
@@ -77,7 +78,7 @@ type
     Button10: TButton;
     Button9: TButton;
     MyMusicTextColor: TGroupBox;
-    Cpanel: TColorPickerButton;
+    Cpanel: TJvColorButton;
     ScanPlay: TCheckBox;
     AaddGroups: TCheckBox;
     Label11: TLabel;
@@ -104,28 +105,28 @@ type
     Panel16: TPanel;
     FontColorPanel: TPanel;
     Label19: TLabel;
-    FontColor: TColorPickerButton;
+    FontColor: TJvColorButton;
     Backgroundcolorpanel: TPanel;
     Label101: TLabel;
-    Backgroundcolor: TColorPickerButton;
+    Backgroundcolor: TJvColorButton;
     SelTextColorPanel: TPanel;
     Label22: TLabel;
-    SelTextColor: TColorPickerButton;
+    SelTextColor: TJvColorButton;
 		SelBarFocusedPanel: TPanel;
     Label23: TLabel;
-    SelBarFocused: TColorPickerButton;
+    SelBarFocused: TJvColorButton;
     SelBarUnFocusedPanel: TPanel;
     Label24: TLabel;
-    SelBarUnfocused: TColorPickerButton;
+    SelBarUnfocused: TJvColorButton;
     playingtxtcolorpanel: TPanel;
     Label95: TLabel;
-    playingtextcolor: TColorPickerButton;
+    playingtextcolor: TJvColorButton;
     headerColorPanel: TPanel;
     Label115: TLabel;
-    headerColor: TColorPickerButton;
+    headerColor: TJvColorButton;
     HeaderTextColorPanel: TPanel;
     Label116: TLabel;
-    HeaderTextColor: TColorPickerButton;
+    HeaderTextColor: TJvColorButton;
     FB: TJvFontComboBox;
     Label8: TLabel;
     FontSize: TSpinEdit;
@@ -144,14 +145,14 @@ type
     Label7: TLabel;
     SearchFontColorPanel: TPanel;
     Label25: TLabel;
-    SearchFontColor: TColorPickerButton;
+    SearchFontColor: TJvColorButton;
     repairVBRCB: TCheckBox;
     AutoScanPaths: TCheckListBox;
     Button12: TButton;
     Button16: TButton;
     KillTextColorPanel: TPanel;
 		Label38: TLabel;
-    KillTextColor: TColorPickerButton;
+    KillTextColor: TJvColorButton;
     Button17: TButton;
     TScheckNewVer: TTabSheet;
     Button18: TButton;
@@ -1358,7 +1359,7 @@ begin
              dbs[dbindex].media :=0;
 						 dbs[dbindex].recursive := true;
 						 dbs[dbindex].exists :=true;
-             dbs[dbindex].color := Cpanel.SelectionColor;
+             dbs[dbindex].color := Cpanel.Color;
              dbs[dbindex].UseCustomColor := cbUseCustomDbColor.Checked;
              dbs[dbindex].calculateCRC := CalcCRCcb.Checked;
              dbs[dbindex].repairVBR := repairVBRCB.Checked
@@ -1438,7 +1439,7 @@ begin
       dbs[dbindex].media := 0;
       dbs[dbindex].recursive := true;
       dbs[dbindex].exists :=true;
-      dbs[dbindex].color := Cpanel.SelectionColor;
+      dbs[dbindex].color := Cpanel.Color;
       dbs[dbindex].UseCustomColor := cbUseCustomDbColor.Checked;
       if onlyNew and CalcCRCcb.Checked and not dbs[dbindex].CalculateCRC then
     		onlyNew := false;
@@ -1525,7 +1526,7 @@ begin
 								 harddisk.Text := dbs[i].name;
 								 CalcCRCcb.Checked := dbs[i].calculateCRC;
                  repairVBRcb.Checked := dbs[i].repairVBR;
-                 Cpanel.SelectionColor := dbs[i].color;
+                 Cpanel.Color := dbs[i].color;
                  cbUseCustomDbColor.Checked := dbs[i].UseCustomColor;
                  for k:=0 to length(dbs[i].paths)-1 do
                       paths.items.add(dbs[i].paths[k]);
@@ -1819,7 +1820,7 @@ procedure Tpref.TSFontsColorsShow(Sender: TObject);
 			if wc.Controls[i] is TJvFontComboBox then TJvFontComboBox(wc.Controls[i]).OnChange := value else
 			if wc.Controls[i] is TSpinEdit then TSpinEdit(wc.Controls[i]).OnChange := value else
 			if wc.Controls[i] is TCheckBox then TCheckBox(wc.Controls[i]).OnClick := value else
-			if wc.Controls[i] is TColorPickerButton then TColorPickerButton(wc.Controls[i]).OnChange := value else
+			if wc.Controls[i] is TJvColorButton then TJvColorButton(wc.Controls[i]).OnChange := value else
 			if wc.Controls[i] is TPanel then SetOnChangeValue(TPanel(wc.Controls[i]), value)
 		end
 	end;
@@ -1851,12 +1852,12 @@ begin
 																								FontSize.value := MainFormInstance.tabel.font.size;
 																								FontBold.Checked := false; //fsBold in MainFormInstance.tabel.font.Style;
 																								FontItalic.Checked := false; //fsItalic in MainFormInstance.tabel.font.Style;
-																								BackgroundColor.SelectionColor := MainFormInstance.tabel.color;
-																								SelTextColor.SelectionColor := MainFormInstance.tabelSelTextColor;
-																								SelBarFocused.selectioncolor := MainFormInstance.tabel.colors.FocusedSelectionColor;
-																								SelBarUnFocused.selectioncolor := MainFormInstance.tabel.colors.UnFocusedSelectionColor;
-                                                HeaderColor.selectioncolor := MainFormInstance.tabel.Header.Background;
-                                                HeaderTextColor.selectioncolor := MainFormInstance.tabel.Header.font.color;
+																								BackgroundColor.Color := MainFormInstance.tabel.color;
+																								SelTextColor.Color := MainFormInstance.tabelSelTextColor;
+																								SelBarFocused.Color := MainFormInstance.tabel.colors.FocusedSelectionColor;
+																								SelBarUnFocused.Color := MainFormInstance.tabel.colors.UnFocusedSelectionColor;
+                                                HeaderColor.Color := MainFormInstance.tabel.Header.Background;
+                                                HeaderTextColor.Color := MainFormInstance.tabel.Header.font.color;
                                         end;
 
                 cTree           :       begin
@@ -1864,11 +1865,11 @@ begin
 																								FontSize.value := MainFormInstance.tree.font.size;
 																								FontBold.Checked := fsBold in MainFormInstance.tree.font.Style;
 																								FontItalic.Checked := fsItalic in MainFormInstance.tree.font.Style;
-																								FontColor.selectioncolor := MainFormInstance.tree.font.color;
-                                                BackgroundColor.SelectionColor := MainFormInstance.tree.color;
-                                                SelTextColor.SelectionColor := MainFormInstance.TreeSelTextColor;
-                                                SelBarFocused.selectioncolor := MainFormInstance.tree.colors.FocusedSelectionColor;
-                                                SelBarUnFocused.selectioncolor := MainFormInstance.tree.colors.UnFocusedSelectionColor
+																								FontColor.Color := MainFormInstance.tree.font.color;
+                                                BackgroundColor.Color := MainFormInstance.tree.color;
+                                                SelTextColor.Color := MainFormInstance.TreeSelTextColor;
+                                                SelBarFocused.Color := MainFormInstance.tree.colors.FocusedSelectionColor;
+                                                SelBarUnFocused.Color := MainFormInstance.tree.colors.UnFocusedSelectionColor
                                         end;
 
 								cQuicklist      :       begin
@@ -1876,11 +1877,11 @@ begin
 																								FontSize.value := MainFormInstance.playlistbox.font.size;
 																								FontBold.Checked := fsBold in MainFormInstance.playlistbox.font.Style;
 																								FontItalic.Checked := fsItalic in MainFormInstance.playlistbox.font.Style;
-																								FontColor.selectioncolor := MainFormInstance.playlistbox.font.color;
-																								BackgroundColor.SelectionColor := MainFormInstance.playlistbox.color;
-																								SelTextColor.SelectionColor := MainFormInstance.PlaylistboxSelTextColor;
-																								SelBarFocused.selectioncolor := MainFormInstance.playlistbox.colors.FocusedSelectionColor;
-																								SelBarUnFocused.selectioncolor := MainFormInstance.playlistbox.colors.UnFocusedSelectionColor
+																								FontColor.Color := MainFormInstance.playlistbox.font.color;
+																								BackgroundColor.Color := MainFormInstance.playlistbox.color;
+																								SelTextColor.Color := MainFormInstance.PlaylistboxSelTextColor;
+																								SelBarFocused.Color := MainFormInstance.playlistbox.colors.FocusedSelectionColor;
+																								SelBarUnFocused.Color := MainFormInstance.playlistbox.colors.UnFocusedSelectionColor
                                         end;
 
                 Cquicklistsongs:        begin
@@ -1888,11 +1889,11 @@ begin
 																								FontSize.value := MainFormInstance.plcon.font.size;
 																								FontBold.Checked := fsBold in MainFormInstance.plcon.font.Style;
 																								FontItalic.Checked := fsItalic in MainFormInstance.plcon.font.Style;
-                                                FontColor.selectioncolor := MainFormInstance.plcon.font.color;
-																								BackgroundColor.SelectionColor := MainFormInstance.plcon.color;
-																								SelTextColor.SelectionColor := MainFormInstance.plconSelTextColor;
-																								SelBarFocused.selectioncolor := MainFormInstance.plcon.colors.FocusedSelectionColor;
-																								SelBarUnFocused.selectioncolor := MainFormInstance.plcon.colors.UnFocusedSelectionColor
+                                                FontColor.Color := MainFormInstance.plcon.font.color;
+																								BackgroundColor.Color := MainFormInstance.plcon.color;
+																								SelTextColor.Color := MainFormInstance.plconSelTextColor;
+																								SelBarFocused.Color := MainFormInstance.plcon.colors.FocusedSelectionColor;
+																								SelBarUnFocused.Color := MainFormInstance.plcon.colors.UnFocusedSelectionColor
 																				end;
 
                 cPlaylist:              begin
@@ -1900,13 +1901,13 @@ begin
 																								FontSize.value := MainFormInstance.winplaylist.font.size;
 																								FontBold.Checked := false; //fsBold in MainFormInstance.tabel.font.Style;
 																								FontItalic.Checked := false; //fsItalic in MainFormInstance.tabel.font.Style;
-																								FontColor.selectioncolor := MainFormInstance.winplaylist.font.color;
-																								BackgroundColor.SelectionColor := MainFormInstance.winplaylist.color;
-                                                SelTextColor.SelectionColor := MainFormInstance.winplaylistSelTextColor;
-                                                SelBarFocused.selectioncolor := MainFormInstance.winplaylist.colors.FocusedSelectionColor;
-                                                SelBarUnFocused.selectioncolor := MainFormInstance.winplaylist.colors.UnFocusedSelectionColor;
-                                                PlayingTextColor.selectioncolor := MainFormInstance.Winplayingcolor;
-                                                KillTextColor.selectioncolor := MainFormInstance.WinKillcolor
+																								FontColor.Color := MainFormInstance.winplaylist.font.color;
+																								BackgroundColor.Color := MainFormInstance.winplaylist.color;
+                                                SelTextColor.Color := MainFormInstance.winplaylistSelTextColor;
+                                                SelBarFocused.Color := MainFormInstance.winplaylist.colors.FocusedSelectionColor;
+                                                SelBarUnFocused.Color := MainFormInstance.winplaylist.colors.UnFocusedSelectionColor;
+                                                PlayingTextColor.Color := MainFormInstance.Winplayingcolor;
+                                                KillTextColor.Color := MainFormInstance.WinKillcolor
                                         end;
 
                 Csplitters      :       begin
@@ -1914,8 +1915,8 @@ begin
 																								Fontsize.value := MainFormInstance.panel1.font.size;
 																								FontBold.Checked := fsBold in MainFormInstance.panel1.font.Style;
 																								FontItalic.Checked := fsItalic in MainFormInstance.panel1.font.Style;
-                                                fontcolor.selectioncolor := MainFormInstance.panel1.font.color;
-                                                BackgroundColor.selectioncolor := MainFormInstance.panel1.color
+                                                fontcolor.Color := MainFormInstance.panel1.font.color;
+                                                BackgroundColor.Color := MainFormInstance.panel1.color
                                         end;
 
 								Ccaptionbarbuttons:     begin
@@ -1923,17 +1924,17 @@ begin
 																								Fontsize.value := MainFormInstance.CollapseButton.font.size;
 																								FontBold.Checked := fsBold in MainFormInstance.CollapseButton.font.Style;
 																								FontItalic.Checked := fsItalic in MainFormInstance.CollapseButton.font.Style;
-																								fontcolor.selectioncolor := MainFormInstance.CollapseButton.font.color;
-//                                                ShuffleRepeatEnabledColor.SelectionColor := MainFormInstance.ShuffleRepeatEnabledClr;
-//                                                ShuffleRepeatDisabledColor.SelectionColor := MainFormInstance.ShuffleRepeatDisabledClr;
-                                                SearchFontColor.SelectionColor := MainFormInstance.f0.Font.color
+																								fontcolor.Color := MainFormInstance.CollapseButton.font.color;
+//                                                ShuffleRepeatEnabledColor.SelectedColor := MainFormInstance.ShuffleRepeatEnabledClr;
+//                                                ShuffleRepeatDisabledColor.SelectedColor := MainFormInstance.ShuffleRepeatDisabledClr;
+                                                SearchFontColor.Color := MainFormInstance.f0.Font.color
 																				end;
 								CplayingLabel:					begin
 																								FB.Fontname := MainFormInstance.FCurPlayBitmap.Canvas.font.name;
 																								Fontsize.value := MainFormInstance.FCurPlayBitmap.Canvas.font.size;
 																								FontBold.Checked := fsBold in MainFormInstance.FCurPlayBitmap.Canvas.font.Style;
 																								FontItalic.Checked := fsItalic in MainFormInstance.FCurPlayBitmap.Canvas.font.Style;
-																								fontcolor.selectioncolor := MainFormInstance.FCurPlayBitmap.Canvas.font.color
+																								fontcolor.Color := MainFormInstance.FCurPlayBitmap.Canvas.font.color
 																				end
 
 								end;
@@ -1951,7 +1952,7 @@ begin
 		 if FontItalic.Checked then
 			F.Style := F.Style + [fsItalic]
 		 else F.Style := F.Style - [fsItalic];
-     if fontcolorpanel.visible then f.color := fontcolor.selectioncolor
+     if fontcolorpanel.visible then f.color := fontcolor.Color
 end;
 var
 	Obj:Integer;
@@ -1961,57 +1962,57 @@ begin
 				case Obj of
                 cMainList       :       begin
                                                 RenderFont(MainFormInstance.tabel.font);
-																								MainFormInstance.tabel.color := BackgroundColor.SelectionColor;
-																								MainFormInstance.tabelSelTextColor := SelTextColor.SelectionColor;
-																								MainFormInstance.tabel.colors.FocusedSelectionColor := SelBarFocused.selectioncolor;
-																								MainFormInstance.tabel.colors.UnFocusedSelectionColor := SelBarUnFocused.selectioncolor;
-																								MainFormInstance.tabel.header.background := headerColor.selectioncolor;
-																								MainFormInstance.tabel.header.font.color := headerTextColor.selectioncolor;
+																								MainFormInstance.tabel.color := BackgroundColor.Color;
+																								MainFormInstance.tabelSelTextColor := SelTextColor.Color;
+																								MainFormInstance.tabel.colors.FocusedSelectionColor := SelBarFocused.Color;
+																								MainFormInstance.tabel.colors.UnFocusedSelectionColor := SelBarUnFocused.Color;
+																								MainFormInstance.tabel.header.background := headerColor.Color;
+																								MainFormInstance.tabel.header.font.color := headerTextColor.Color;
 																								//MainFormInstance.AdjustNodeHeight(MainFormInstance.tabel)
 																				end;
 
 								cTree           :       begin
                                                 RenderFont(MainFormInstance.tree.font);
-																								MainFormInstance.tree.color := BackgroundColor.SelectionColor;
-																								MainFormInstance.TreeSelTextColor := SelTextColor.SelectionColor;
-																								MainFormInstance.tree.colors.FocusedSelectionColor := SelBarFocused.selectioncolor;
-																								MainFormInstance.tree.colors.UnFocusedSelectionColor := SelBarUnFocused.selectioncolor;
+																								MainFormInstance.tree.color := BackgroundColor.Color;
+																								MainFormInstance.TreeSelTextColor := SelTextColor.Color;
+																								MainFormInstance.tree.colors.FocusedSelectionColor := SelBarFocused.Color;
+																								MainFormInstance.tree.colors.UnFocusedSelectionColor := SelBarUnFocused.Color;
 																								//MainFormInstance.AdjustNodeHeight(MainFormInstance.tree)
 																				end;
 
 								cQuicklist      :       begin
 																								RenderFont(MainFormInstance.playlistbox.font);
-																								MainFormInstance.playlistbox.color := BackgroundColor.SelectionColor;
-																								MainFormInstance.PlaylistboxSelTextColor := SelTextColor.SelectionColor;
-																								MainFormInstance.playlistbox.colors.FocusedSelectionColor := SelBarFocused.selectioncolor;
-																								MainFormInstance.playlistbox.colors.UnFocusedSelectionColor := SelBarUnFocused.selectioncolor;
+																								MainFormInstance.playlistbox.color := BackgroundColor.Color;
+																								MainFormInstance.PlaylistboxSelTextColor := SelTextColor.Color;
+																								MainFormInstance.playlistbox.colors.FocusedSelectionColor := SelBarFocused.Color;
+																								MainFormInstance.playlistbox.colors.UnFocusedSelectionColor := SelBarUnFocused.Color;
 																								//MainFormInstance.AdjustNodeHeight(MainFormInstance.playlistbox)
                                         end;
 
 								Cquicklistsongs:        begin
                                                 RenderFont(MainFormInstance.plcon.font);
-                                                MainFormInstance.plcon.color := BackgroundColor.SelectionColor;
-																								MainFormInstance.plconSelTextColor := SelTextColor.SelectionColor;
-																								MainFormInstance.plcon.colors.FocusedSelectionColor := SelBarFocused.selectioncolor;
-																								MainFormInstance.plcon.colors.UnFocusedSelectionColor := SelBarUnFocused.selectioncolor;
+                                                MainFormInstance.plcon.color := BackgroundColor.Color;
+																								MainFormInstance.plconSelTextColor := SelTextColor.Color;
+																								MainFormInstance.plcon.colors.FocusedSelectionColor := SelBarFocused.Color;
+																								MainFormInstance.plcon.colors.UnFocusedSelectionColor := SelBarUnFocused.Color;
 																								//MainFormInstance.AdjustNodeHeight(MainFormInstance.plcon)
 																				end;
 
                 cPlaylist:              begin
 																								RenderFont(MainFormInstance.winplaylist.font);
-																								MainFormInstance.winplaylist.color := BackgroundColor.SelectionColor;
-																								MainFormInstance.winplaylistSelTextColor := SelTextColor.SelectionColor;
-																								MainFormInstance.winplaylist.colors.FocusedSelectionColor := SelBarFocused.selectioncolor;
-																								MainFormInstance.winplaylist.colors.UnFocusedSelectionColor := SelBarUnFocused.selectioncolor;
-                                                MainFormInstance.Winplayingcolor := PlayingTextColor.selectioncolor;
-                                                MainFormInstance.WinKillcolor := KillTextColor.SelectionColor;
+																								MainFormInstance.winplaylist.color := BackgroundColor.Color;
+																								MainFormInstance.winplaylistSelTextColor := SelTextColor.Color;
+																								MainFormInstance.winplaylist.colors.FocusedSelectionColor := SelBarFocused.Color;
+																								MainFormInstance.winplaylist.colors.UnFocusedSelectionColor := SelBarUnFocused.Color;
+                                                MainFormInstance.Winplayingcolor := PlayingTextColor.Color;
+                                                MainFormInstance.WinKillcolor := KillTextColor.Color;
 																								//MainFormInstance.AdjustNodeHeight(MainFormInstance.winplaylist)
 
 																				end;
 
 								Csplitters      :       begin
 																								RenderFont(MainFormInstance.panel1.font);
-																								MainFormInstance.panel1.color:=BackgroundColor.SelectionColor;
+																								MainFormInstance.panel1.color:=BackgroundColor.Color;
 																								{MainFormInstance.panel1.height := abs(MainFormInstance.panel1.Font.Height) + 3;
 																								RenderFont(MainFormInstance.treeplbar.Font);
 																								MainFormInstance.treeplbar.height := abs(MainFormInstance.treeplbar.Font.Height) + 3;
@@ -2041,9 +2042,9 @@ begin
 
 																								RenderFont(MainFormInstance.repLabel.Font);
 																								RenderFont(MainFormInstance.shuLabel.Font); }
-//																								MainFormInstance.ShuffleRepeatEnabledClr := ShuffleRepeatEnabledColor.selectioncolor;
-//																								MainFormInstance.ShuffleRepeatDisabledClr := ShuffleRepeatDisabledColor.selectioncolor;
-																								MainFormInstance.F0Textcolor := SearchFontColor.SelectionColor;
+//																								MainFormInstance.ShuffleRepeatEnabledClr := ShuffleRepeatEnabledColor.Color;
+//																								MainFormInstance.ShuffleRepeatDisabledClr := ShuffleRepeatDisabledColor.Color;
+																								MainFormInstance.F0Textcolor := SearchFontColor.Color;
 																				end;
 							CplayingLabel:						begin
 																								RenderFont(MainFormInstance.FCurPlayBitmap.Canvas.Font);
@@ -2334,9 +2335,9 @@ end;
 begin
 	SkinAuthorLabel.Caption := GetText(TXT_Author) + ': ' + SkinArray[SkinBox.ItemIndex].Author;
   skinAuthorLink.Caption := FixUrl(SkinArray[SkinBox.itemIndex].AuthorURL);
-  skinAuthorLink.URL := FixUrl(SkinArray[SkinBox.itemIndex].AuthorURL);
+//  skinAuthorLink. := FixUrl(SkinArray[SkinBox.itemIndex].AuthorURL);
   skinWinampLink.Caption := FixUrl(SkinArray[SkinBox.itemIndex].CorrespondToURL);
-  skinWinampLink.URL := FixUrl(SkinArray[SkinBox.itemIndex].CorrespondToURL);
+//  skinWinampLink.URL := FixUrl(SkinArray[SkinBox.itemIndex].CorrespondToURL);
 
 	if SkinArray[SkinBox.ItemIndex].CorrespondTo = '' then
 		SkinCorrespondingWinampLabel.Caption := ''

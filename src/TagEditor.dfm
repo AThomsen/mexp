@@ -1,6 +1,6 @@
 object Editor: TEditor
-  Left = 935
-  Top = 281
+  Left = 978
+  Top = 336
   Width = 637
   Height = 610
   BorderIcons = [biMinimize]
@@ -65,8 +65,6 @@ object Editor: TEditor
     Width = 629
     Height = 8
     Align = alBottom
-    Min = 0
-    Max = 100
     Smooth = True
     TabOrder = 1
   end
@@ -372,60 +370,45 @@ object Editor: TEditor
           TabOrder = 0
           OnChange = TRCKChange
         end
-        object Artist: TLookUpComboBox
+        object Artist: TJvComboBox
           Tag = 10
           Left = 112
           Top = 32
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 13
           ParentShowHint = False
-          ShortCut = 32808
           ShowHint = True
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 1
           OnChange = ArtistChange
           OnDropDown = ArtistDropDown
           OnExit = ArtistExit
         end
-        object Title: TLookUpComboBox
+        object Title: TJvComboBox
           Tag = 10
           Left = 112
           Top = 58
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 13
           ParentShowHint = False
-          ShortCut = 32808
           ShowHint = True
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 2
           OnChange = ArtistChange
           OnExit = ArtistExit
         end
-        object Album: TLookUpComboBox
+        object Album: TJvComboBox
           Tag = 10
           Left = 112
           Top = 84
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 13
           ParentShowHint = False
-          ShortCut = 32808
           ShowHint = True
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 3
           OnChange = ArtistChange
           OnDropDown = AlbumDropDown
@@ -669,21 +652,16 @@ object Editor: TEditor
               WideText = 'Value'
             end>
         end
-        object ArtistSortOrder: TLookUpComboBox
+        object ArtistSortOrder: TJvComboBox
           Tag = 10
           Left = 112
           Top = 344
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 13
           ParentShowHint = False
-          ShortCut = 32808
           ShowHint = True
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 16
           OnChange = ArtistChange
           OnExit = ArtistExit
@@ -769,56 +747,41 @@ object Editor: TEditor
           TabOrder = 0
           OnChange = TRCKChange
         end
-        object Id3v1Artist: TLookUpComboBox
+        object Id3v1Artist: TJvComboBox
           Tag = 11
           Left = 112
           Top = 32
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
           MaxLength = 30
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 1
           OnChange = ArtistChange
           OnExit = ArtistExit
         end
-        object Id3v1Title: TLookUpComboBox
+        object Id3v1Title: TJvComboBox
           Tag = 11
           Left = 112
           Top = 58
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
           MaxLength = 30
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 2
           OnChange = ArtistChange
           OnExit = ArtistExit
         end
-        object Id3v1Album: TLookUpComboBox
+        object Id3v1Album: TJvComboBox
           Tag = 11
           Left = 112
           Top = 84
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
           MaxLength = 30
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 3
           OnChange = ArtistChange
           OnExit = ArtistExit
@@ -844,21 +807,15 @@ object Editor: TEditor
           OnChange = ArtistChange
           OnExit = ArtistExit
         end
-        object Id3v1Genre: TLookUpComboBox
+        object Id3v1Genre: TJvComboBox
           Tag = 11
           Left = 224
           Top = 112
           Width = 188
           Height = 21
-          AutoDropList = True
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
           MaxLength = 30
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = True
           TabOrder = 6
           OnChange = ArtistChange
         end
@@ -1045,19 +1002,14 @@ object Editor: TEditor
               TabOrder = 0
               OnChange = ArtistChange
             end
-            object TIT2: TLookUpComboBox
+            object TIT2: TJvComboBox
               Tag = 12
               Left = 112
               Top = 0
               Width = 278
               Height = 21
-              Complete = False
-              DropListCount = 8
               ItemHeight = 0
-              ShortCut = 32808
               Sorted = True
-              ReadOnly = False
-              ListReadOnly = False
               TabOrder = 1
               OnChange = ArtistChange
               OnExit = ArtistExit
@@ -1159,19 +1111,14 @@ object Editor: TEditor
               Caption = 'Artist &sort order'
               FocusControl = TSOP
             end
-            object TPE1: TLookUpComboBox
+            object TPE1: TJvComboBox
               Tag = 12
               Left = 112
               Top = 0
               Width = 278
               Height = 21
-              Complete = False
-              DropListCount = 8
               ItemHeight = 0
-              ShortCut = 32808
               Sorted = True
-              ReadOnly = False
-              ListReadOnly = False
               TabOrder = 0
               OnChange = ArtistChange
               OnExit = ArtistExit
@@ -1221,21 +1168,16 @@ object Editor: TEditor
               TabOrder = 5
               OnClick = ToggleArtistClick
             end
-            object TSOP: TLookUpComboBox
+            object TSOP: TJvComboBox
               Tag = 12
               Left = 112
               Top = 143
               Width = 305
               Height = 21
-              Complete = False
-              DropListCount = 8
               ItemHeight = 0
               ParentShowHint = False
-              ShortCut = 32808
               ShowHint = True
               Sorted = True
-              ReadOnly = False
-              ListReadOnly = False
               TabOrder = 6
               OnChange = ArtistChange
               OnExit = ArtistExit
@@ -1371,20 +1313,15 @@ object Editor: TEditor
               Font.Style = [fsBold]
               ParentFont = False
             end
-            object TALB: TLookUpComboBox
+            object TALB: TJvComboBox
               Tag = 12
               Left = 112
               Top = 0
               Width = 300
               Height = 21
               Hint = 'Album/Movie/Show title'
-              Complete = False
-              DropListCount = 8
               ItemHeight = 0
-              ShortCut = 32808
               Sorted = True
-              ReadOnly = False
-              ListReadOnly = False
               TabOrder = 0
               OnChange = ArtistChange
               OnExit = ArtistExit
@@ -1444,19 +1381,13 @@ object Editor: TEditor
                   WideText = 'Text'
                 end>
             end
-            object TLAN: TLookUpComboBox
+            object TLAN: TJvComboBox
               Tag = 12
               Left = 112
               Top = 52
               Width = 300
               Height = 21
-              Complete = False
-              DropListCount = 8
               ItemHeight = 0
-              ShortCut = 32808
-              SlimButton = True
-              ReadOnly = False
-              ListReadOnly = False
               TabOrder = 2
               OnChange = ArtistChange
               OnClick = ArtistChange
@@ -1524,23 +1455,16 @@ object Editor: TEditor
               OnChange = COMMtextChange
               OnExit = COMMdizExit
             end
-            object COMMlanguage: TLookUpComboBox
+            object COMMlanguage: TJvComboBox
               Left = 296
               Top = 242
               Width = 113
               Height = 21
-              AutoDropList = True
               Color = clWhite
-              Complete = False
-              Ctl3D = True
-              DropListCount = 8
               Enabled = False
               ItemHeight = 0
-              ParentCtl3D = False
-              ShortCut = 32808
+              ParentFlat = False
               Sorted = True
-              ReadOnly = False
-              ListReadOnly = True
               TabOrder = 9
               OnChange = COMMlanguageChange
               OnClick = COMMlanguageClick
@@ -1801,53 +1725,38 @@ object Editor: TEditor
           TabOrder = 0
           OnChange = TRCKChange
         end
-        object ApeArtist: TLookUpComboBox
+        object ApeArtist: TJvComboBox
           Tag = 13
           Left = 112
           Top = 32
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 1
           OnChange = ArtistChange
           OnExit = ArtistExit
         end
-        object ApeTitle: TLookUpComboBox
+        object ApeTitle: TJvComboBox
           Tag = 13
           Left = 112
           Top = 58
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 2
           OnChange = ArtistChange
           OnExit = ArtistExit
         end
-        object ApeAlbum: TLookUpComboBox
+        object ApeAlbum: TJvComboBox
           Tag = 13
           Left = 112
           Top = 84
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 3
           OnChange = ArtistChange
           OnExit = ArtistExit
@@ -1862,20 +1771,14 @@ object Editor: TEditor
           TabOrder = 4
           OnChange = TRCKChange
         end
-        object ApeGenre: TLookUpComboBox
+        object ApeGenre: TJvComboBox
           Tag = 13
           Left = 112
           Top = 168
           Width = 300
           Height = 21
-          AutoDropList = True
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
-          ShortCut = 32808
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = True
           TabOrder = 5
           OnChange = ArtistChange
         end
@@ -1953,21 +1856,16 @@ object Editor: TEditor
           TabOrder = 9
           OnChange = TRCKChange
         end
-        object ApeArtistSortOrder: TLookUpComboBox
+        object ApeArtistSortOrder: TJvComboBox
           Tag = 13
           Left = 112
           Top = 192
           Width = 300
           Height = 21
-          Complete = False
-          DropListCount = 8
           ItemHeight = 0
           ParentShowHint = False
-          ShortCut = 32808
           ShowHint = True
           Sorted = True
-          ReadOnly = False
-          ListReadOnly = False
           TabOrder = 10
           OnChange = ArtistChange
           OnExit = ArtistExit
@@ -2195,53 +2093,38 @@ object Editor: TEditor
             TabOrder = 0
             OnChange = TRCKChange
           end
-          object WMAArtist: TLookUpComboBox
+          object WMAArtist: TJvComboBox
             Tag = 14
             Left = 111
             Top = 26
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 1
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object WMATitle: TLookUpComboBox
+          object WMATitle: TJvComboBox
             Tag = 14
             Left = 111
             Top = 52
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 2
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object WMAAlbum: TLookUpComboBox
+          object WMAAlbum: TJvComboBox
             Tag = 14
             Left = 111
             Top = 78
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 3
             OnChange = ArtistChange
             OnExit = ArtistExit
@@ -2266,20 +2149,14 @@ object Editor: TEditor
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object WMAGenre: TLookUpComboBox
+          object WMAGenre: TJvComboBox
             Tag = 14
             Left = 111
             Top = 162
             Width = 300
             Height = 21
-            AutoDropList = True
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = True
             TabOrder = 6
             OnChange = ArtistChange
           end
@@ -2323,21 +2200,16 @@ object Editor: TEditor
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object WMAartistSortOrder: TLookUpComboBox
+          object WMAartistSortOrder: TJvComboBox
             Tag = 14
             Left = 111
             Top = 306
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
             ParentShowHint = False
-            ShortCut = 32808
             ShowHint = True
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 11
             OnChange = ArtistChange
             OnExit = ArtistExit
@@ -2631,21 +2503,16 @@ object Editor: TEditor
             TabOrder = 1
             OnChange = TRCKChange
           end
-          object OggArtistSortOrder: TLookUpComboBox
+          object OggArtistSortOrder: TJvComboBox
             Tag = 15
             Left = 111
             Top = 252
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
             ParentShowHint = False
-            ShortCut = 32808
             ShowHint = True
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 2
             OnChange = ArtistChange
             OnExit = ArtistExit
@@ -2670,20 +2537,14 @@ object Editor: TEditor
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object OggGenre: TLookUpComboBox
+          object OggGenre: TJvComboBox
             Tag = 15
             Left = 111
             Top = 164
             Width = 300
             Height = 21
-            AutoDropList = True
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = True
             TabOrder = 5
             OnChange = ArtistChange
           end
@@ -2707,53 +2568,38 @@ object Editor: TEditor
             TabOrder = 7
             OnChange = TRCKChange
           end
-          object OggAlbum: TLookUpComboBox
+          object OggAlbum: TJvComboBox
             Tag = 15
             Left = 111
             Top = 80
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 8
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object OggTitle: TLookUpComboBox
+          object OggTitle: TJvComboBox
             Tag = 15
             Left = 111
             Top = 54
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 9
             OnChange = ArtistChange
             OnExit = ArtistExit
           end
-          object OggArtist: TLookUpComboBox
+          object OggArtist: TJvComboBox
             Tag = 15
             Left = 111
             Top = 28
             Width = 300
             Height = 21
-            Complete = False
-            DropListCount = 8
             ItemHeight = 0
-            ShortCut = 32808
             Sorted = True
-            ReadOnly = False
-            ListReadOnly = False
             TabOrder = 10
             OnChange = ArtistChange
             OnExit = ArtistExit
@@ -3419,6 +3265,7 @@ object Editor: TEditor
   end
   object ReadMpegInfo: TBMDThread
     Priority = tpLowest
+    UpdateEnabled = True
     OnExecute = ReadMpegInfoExecute
     OnStart = ReadMpegInfoStart
     Left = 568
@@ -4240,12 +4087,14 @@ object Editor: TEditor
   end
   object LyricsThread: TBMDThread
     Priority = tpLower
+    UpdateEnabled = False
     OnExecute = LyricsThreadExecute
     Left = 536
     Top = 648
   end
   object readFileThread: TBMDThread
     RefreshInterval = 50
+    UpdateEnabled = False
     OnExecute = readFileThreadExecute
     Left = 568
     Top = 616
@@ -4268,6 +4117,7 @@ object Editor: TEditor
     Top = 616
   end
   object SaveThread: TBMDThread
+    UpdateEnabled = False
     OnExecute = SaveThreadExecute
     Left = 568
     Top = 584

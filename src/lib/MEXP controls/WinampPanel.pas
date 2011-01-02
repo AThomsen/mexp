@@ -1,4 +1,4 @@
-unit SpecialPanel;
+unit WinampPanel;
 
 interface
 
@@ -9,7 +9,7 @@ uses
 type
 	TOnPaint = procedure(Sender: TObject; Canvas: TCanvas) of object;
 
-	TSpecialPanel = class(TPanel)
+	TWinampPanel = class(TPanel)
 	private
 		FOnPaint: TOnPaint;
 		FinheritedPaint: Boolean;
@@ -32,28 +32,27 @@ procedure Register;
 
 implementation
 
-constructor TSpecialPanel.Create(AOwner: TComponent);
+constructor TWinampPanel.Create(AOwner: TComponent);
 begin
 	inherited;
 	ControlStyle :=ControlStyle - [CsOpaque];
 	doublebuffered := true
 end;
 
-Procedure TSpecialPanel.WMEraseBkGnd( Var msg: TWMEraseBkGnd );
+Procedure TWinampPanel.WMEraseBkGnd( Var msg: TWMEraseBkGnd );
 begin
  //	msg.result := 1;
 end;
 
-procedure TSpecialPanel.paint;
+procedure TWinampPanel.paint;
 
 begin
-//	if FinheritedPaint or (csDesigning in ComponentState) then
 		inherited paint;
 	if assigned(FOnPaint) then
 		FOnPaint(Self, Canvas);
 end;
 
-{procedure TSpecialPanel.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
+{procedure TWinampPanel.SetBounds(ALeft, ATop, AWidth, AHeight: Integer);
 begin
 	if (ALeft <> Left) or (ATop <> Top) or
 		(AWidth <> Width) or (AHeight <> Height) then
@@ -74,7 +73,7 @@ end; }
 
 procedure Register;
 begin
-	RegisterComponents('MEXP', [TSpecialPanel]);
+	RegisterComponents('MEXP', [TWinampPanel]);
 end;
 
 end.

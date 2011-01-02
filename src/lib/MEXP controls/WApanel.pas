@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-	ExtCtrls, ColorConv, SpecialPanel;
+	ExtCtrls, ColorConv, WinampPanel;
 
 type
-	TWApanel = class(TSpecialPanel)
+	TWApanel = class(TWinampPanel)
 	private
         Fext3d : Boolean;
         FExt3dWidth : Integer;

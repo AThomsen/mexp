@@ -40,11 +40,15 @@ uses
 	VirtualTrees,
 	BMDThread, JvComputerInfoEx, WApanel, WinampScrollVert,
 	math, Gauges, RecHashTable,
-	Id3tags, TagEditor, ColorConv, QStringList,
+	Id3Tags,
+  TagEditor,
+  ColorConv, QStringList,
 	snap, WAVfile,
 	MpegAudio, MpegPlus,
-  OggVorbis, WMAfile, Monkey, ApeTag, SpecialPanel, MyMemoryStream,
-	MexpIniFile, ExPopupList, JvComponent, JvSearchFiles, Dialogs, jpeg, pngImage, GR32, GR32_Transforms, OptimizedCode, MyTBits,
+  OggVorbis, WMAfile, Monkey, ApeTag, WinampPanel, MyMemoryStream,
+	MexpIniFile, ExPopupList, JvComponent, JvSearchFiles, Dialogs, jpeg,
+  pngImage,
+  GR32, GR32_Resamplers, OptimizedCode, MyTBits,
   StringFunctions, VirtualTreesEx, JvComponentBase, syncobjs, MyId3v2Base, JvID3v2Types;
 
 type
@@ -110,13 +114,13 @@ type
     Collapseall1: TMenuItem;
     Expandall1: TMenuItem;
 		N8: TMenuItem;
-    tabelpanel: TSpecialPanel;
-    tabelpanellow: TSpecialPanel;
+    tabelpanel: TWinampPanel;
+    tabelpanellow: TWinampPanel;
 		filterbar: TWApanel;
     searchlabel: TLabel;
     f0: TEdit;
-    treepanel: TSpecialPanel;
-    treepanellow: TSpecialPanel;
+    treepanel: TWinampPanel;
+    treepanellow: TWinampPanel;
     Panel1: TWApanel;
     AllButton: TLabel;
 		CollapseButton: TLabel;
@@ -210,7 +214,7 @@ type
     Tags1: TMenuItem;
 		Changetracknumberto1231: TMenuItem;
     Organizefiles1: TMenuItem;
-    sliderr: TSpecialPanel;
+    sliderr: TWinampPanel;
 		TreeImgs: TImageList;
     N17: TMenuItem;
     treeplbar: TWApanel;
@@ -16537,7 +16541,7 @@ begin
         for x:=0 to length(dbs[i].excl)-1 do
           dbpref.excl.items.add(dbs[i].excl[x]);
         dbpref.recsub.checked := dbs[i].recursive;
-        dbpref.Cpanel.selectioncolor := dbs[i].color;
+        dbpref.Cpanel.Color := dbs[i].color;
         dbpref.cbUseCustomColor.Checked := dbs[i].UseCustomColor;
         if dbs[i].media = media_cdrom then dbpref.readonly.checked := true else
         if dbs[i].media = media_network then dbpref.network.Checked := true else
@@ -25879,7 +25883,7 @@ begin
     fCoverImgsRW.Free;
     fCoverRecRW.Free;
 
-    CloseHandle(WakeCoverThread)
+    CloseHandle(WakeCoverThread);
 	end
 end;
 
@@ -31371,6 +31375,7 @@ var
   jpg: TJpegImage;
   state: TCoverRecState;
   picLoaded: boolean;
+  resampler: TCustomResampler;
 begin
 	while not Thread.Terminated and not quitting do
   begin
@@ -31461,7 +31466,12 @@ begin
                 end
               end;
 
-              StretchTransfer(bm1, bm1.BoundsRect, bm1.BoundsRect, bm2, bm2.BoundsRect, sfLanczos, dmOpaque);	//sfMitchell - Lanczos er bedst :)
+              resampler := TKernelResampler.Create();
+              TKernelResampler(resampler).Kernel := TLanczosKernel.Create();
+              StretchTransfer(bm1, bm1.BoundsRect, bm1.BoundsRect, bm2, bm2.BoundsRect, resampler, dmOpaque);	//sfMitchell - Lanczos er bedst :)
+              TKernelResampler(resampler).Kernel.Free;
+              resampler.Free;
+
               bm2.Free;
               jpg := Bitmap32ToJpeg(bm1);
               bm1.Free;

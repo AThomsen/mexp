@@ -33,13 +33,14 @@ interface
 uses
 	Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
 	StdCtrls, ExtCtrls, ComCtrls, VirtualTrees, BMDThread,
-	ImgList, LookUpComboBox, ContNrs,
+	ImgList, ContNrs,
   MpegAudio,
 	Id3tags, QStrings, QStringList, FileCtrl, WAIPC,
 	inuptbox2U, math,
   MpegPlus, OggVorbis, ApeTag, WMAfile, Monkey, WavFile,
   MyId3v2Base, JvID3v2Types,
-  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdHTTP, MEXPtypes;
+  IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdHTTP, MEXPtypes,
+  JvCombobox, Variants, JvExStdCtrls;
 
 const
 	tagDB = 10;
@@ -50,7 +51,6 @@ const
   tagOgg = 15;
 
   tagMAX = tagOgg;
-
 
 type
 	TComponentArray = array of TComponent;
@@ -84,7 +84,7 @@ PundoRec = ^TUndoRec;
 type
   TLanguageCombo = class(TInterfacedObject, IVTEditLink)
   private
-    FComboBox: TLookUpComboBox;
+    FComboBox: TJvCombobox;
     FEditing: Boolean;
     FEditNode: PVirtualNode;
 		FEditTree: TBaseVirtualTree;
@@ -102,7 +102,7 @@ type
     procedure ProcessMessage(var Message: TMessage); stdcall;
 		procedure SetBounds(R: TRect); stdcall;
 
-    property ComboBox: TLookUpComboBox read FComboBox write FComboBox;
+    property ComboBox: TJvCombobox read FComboBox write FComboBox;
     property EditNode: PVirtualNode read FEditNode write FEditNode;
     property EditTree: TBaseVirtualTree read FEditTree write FEditTree;
     property Editing: Boolean read FEditing write FEditing;
@@ -141,7 +141,7 @@ PstatRec = ^TstatRec;
 type
   TGenresCombo = class(TInterfacedObject, IVTEditLink)
   private
-    FComboBox: TLookUpComboBox;
+    FComboBox: TJvCombobox;
     FEditing: Boolean;
     FEditNode: PVirtualNode;
     FEditTree: TBaseVirtualTree;
@@ -159,7 +159,7 @@ type
     procedure ProcessMessage(var Message: TMessage); stdcall;
     procedure SetBounds(R: TRect); stdcall;
 
-    property ComboBox: TLookUpComboBox read FComboBox write FComboBox;
+    property ComboBox: TJvCombobox read FComboBox write FComboBox;
     property EditNode: PVirtualNode read FEditNode write FEditNode;
     property EditTree: TBaseVirtualTree read FEditTree write FEditTree;
     property Editing: Boolean read FEditing write FEditing;
@@ -206,9 +206,9 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label31: TLabel;
     Label32: TLabel;
     Track: TEdit;
-    Artist: TLookUpComboBox;
-    Title: TLookUpComboBox;
-    Album: TLookUpComboBox;
+    Artist: TJvCombobox;
+    Title: TJvCombobox;
+    Album: TJvCombobox;
     genreCover: TCheckBox;
     genreRemix: TCheckBox;
     Genre: TVirtualStringTree;
@@ -233,12 +233,12 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label21: TLabel;
     Bevel3: TBevel;
     Id3v1Track: TEdit;
-    Id3v1Artist: TLookUpComboBox;
-    Id3v1Title: TLookUpComboBox;
-    Id3v1Album: TLookUpComboBox;
+    Id3v1Artist: TJvCombobox;
+    Id3v1Title: TJvCombobox;
+    Id3v1Album: TJvCombobox;
     Id3v1Year: TEdit;
     Id3v1Comment: TEdit;
-    Id3v1Genre: TLookUpComboBox;
+    Id3v1Genre: TJvCombobox;
     GroupBox3: TGroupBox;
     CFROM1111: TRadioButton;
     CFROM1110: TRadioButton;
@@ -260,7 +260,7 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label38: TLabel;
     Bevel1: TBevel;
     TIT1: TEdit;
-    TIT2: TLookUpComboBox;
+    TIT2: TJvCombobox;
     TIT3: TEdit;
     TPE4: TEdit;
     ToggleTitle: TButton;
@@ -271,7 +271,7 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label36: TLabel;
     Label8: TLabel;
     Bevel2: TBevel;
-    TPE1: TLookUpComboBox;
+    TPE1: TJvCombobox;
     TPE2: TEdit;
     TPE3: TEdit;
     TOPE: TEdit;
@@ -285,16 +285,16 @@ PCustomFieldRec = ^TCustomFieldRec;
     LangLabel: TLabel;
     DizLabel: TLabel;
     TextLabel: TLabel;
-    TALB: TLookUpComboBox;
+    TALB: TJvCombobox;
     CommTree: TVirtualStringTree;
-    TLAN: TLookUpComboBox;
+    TLAN: TJvCombobox;
     CommAdd: TButton;
     CommDel: TButton;
     V2Cover: TCheckBox;
     V2Remix: TCheckBox;
     COMMdiz: TEdit;
     COMMtext: TMemo;
-    COMMlanguage: TLookUpComboBox;
+    COMMlanguage: TJvCombobox;
     TCON: TVirtualStringTree;
     AddTCON: TButton;
 		DelTCON: TButton;
@@ -312,11 +312,11 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label44: TLabel;
     Label45: TLabel;
     ApeTrack: TEdit;
-    ApeArtist: TLookUpComboBox;
-    ApeTitle: TLookUpComboBox;
-    ApeAlbum: TLookUpComboBox;
+    ApeArtist: TJvCombobox;
+    ApeTitle: TJvCombobox;
+    ApeAlbum: TJvCombobox;
     ApeYear: TEdit;
-    ApeGenre: TLookUpComboBox;
+    ApeGenre: TJvCombobox;
     GroupBox5: TGroupBox;
     CFROM1313: TRadioButton;
     CFROM1310: TRadioButton;
@@ -364,7 +364,7 @@ PCustomFieldRec = ^TCustomFieldRec;
     SyncTabs: TCheckBox;
     Label74: TLabel;
     Label71: TLabel;
-    ArtistSortOrder: TLookUpComboBox;
+    ArtistSortOrder: TJvComboBox;
     Label73: TLabel;
     TPOS: TEdit;
     Label75: TLabel;
@@ -373,13 +373,13 @@ PCustomFieldRec = ^TCustomFieldRec;
     TYER: TEdit;
     Bevel10: TBevel;
     Label76: TLabel;
-    TSOP: TLookUpComboBox;
+    TSOP: TJvComboBox;
     Label77: TLabel;
     ApePartOfSet: TEdit;
     Label78: TLabel;
     ApeTotalParts: TEdit;
     Label79: TLabel;
-    ApeArtistSortOrder: TLookUpComboBox;
+    ApeArtistSortOrder: TJvComboBox;
     Label46: TLabel;
     ApeComment: TEdit;
     Panel5: TPanel;
@@ -388,23 +388,23 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label69: TLabel;
     OggTotalTracks: TEdit;
     Label85: TLabel;
-    OggArtistSortOrder: TLookUpComboBox;
+    OggArtistSortOrder: TJvComboBox;
     OggVersion: TEdit;
     Label66: TLabel;
     Label65: TLabel;
     OggCopyright: TEdit;
-    OggGenre: TLookUpComboBox;
+    OggGenre: TJvComboBox;
     Label60: TLabel;
     Label59: TLabel;
     OggComment: TEdit;
     OggPartOfSet: TEdit;
     Label83: TLabel;
     Label57: TLabel;
-    OggAlbum: TLookUpComboBox;
-    OggTitle: TLookUpComboBox;
+    OggAlbum: TJvComboBox;
+    OggTitle: TJvComboBox;
     Label56: TLabel;
     Label55: TLabel;
-    OggArtist: TLookUpComboBox;
+    OggArtist: TJvComboBox;
     Label58: TLabel;
     OggYear: TEdit;
     scrollBarOgg: TScrollBar;
@@ -422,17 +422,17 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label47: TLabel;
     WMAtrack: TEdit;
     Label48: TLabel;
-    WMAArtist: TLookUpComboBox;
+    WMAArtist: TJvComboBox;
     Label49: TLabel;
-    WMATitle: TLookUpComboBox;
-    WMAAlbum: TLookUpComboBox;
+    WMATitle: TJvComboBox;
+    WMAAlbum: TJvComboBox;
     Label50: TLabel;
     Label80: TLabel;
     WMAPartOfSet: TEdit;
     Label52: TLabel;
     WMAComment: TEdit;
     Label53: TLabel;
-    WMAGenre: TLookUpComboBox;
+    WMAGenre: TJvComboBox;
     Label61: TLabel;
     WMARating: TEdit;
     Label62: TLabel;
@@ -442,7 +442,7 @@ PCustomFieldRec = ^TCustomFieldRec;
     Label64: TLabel;
     WMAPromotion: TEdit;
     Label82: TLabel;
-    WMAartistSortOrder: TLookUpComboBox;
+    WMAartistSortOrder: TJvComboBox;
     WMATotalParts: TEdit;
     Label81: TLabel;
     Label51: TLabel;
@@ -959,11 +959,11 @@ end;
 
 constructor TLanguageCombo.Create;
 begin
-  ComboBox := TLookUpComboBox.Create(nil); // Nobody owns it
+  ComboBox := TJvComboBox.Create(nil); // Nobody owns it
   ComboBox.Visible := False;
   ComboBox.Sorted := false;
-  Combobox.ListReadOnly := true;
-  Combobox.Complete := false;
+  Combobox.Style := csDropDownList;
+  Combobox.AutoComplete := false;
   Combobox.OnExit := LanguageComboLeave;
 end;
 
@@ -1070,12 +1070,12 @@ end;
 
 constructor TGenresCombo.Create;
 begin
-  ComboBox := TLookUpComboBox.Create(nil); // Nobody owns it
+  ComboBox := TJvComboBox.Create(nil); // Nobody owns it
   ComboBox.Visible := False;
   ComboBox.flat := true;
   ComboBox.Sorted := true;
-  Combobox.ListReadOnly := false;
-  Combobox.Complete := false;
+  Combobox.Style := csDropDown;
+  Combobox.AutoComplete := false;
 	Combobox.OnExit := nil//GenresComboLeave
 end;
 
@@ -1093,7 +1093,7 @@ begin
 	if Editing then
 	begin
 			 //combobox.ItemIndex := GetGenreID(combobox.text); duer ikke da genrelisten i comboboxen er sorteret
-			 if comboBox.ListReadonly then if comboBox.text <> '' then
+			 if comboBox.Style = csDropDownList then if comboBox.text <> '' then
 			 begin
 						//i := comboBox.items.IndexOf(comboBox.text);
 						x:=-1;
@@ -1142,11 +1142,11 @@ begin
     if Editor.checkIfAllGenresAllowed(Tree) then
     begin
          ComboBox.Items.AddStrings(genreList);
-         Combobox.ListReadOnly := false
+         Combobox.Style := csDropDown
     end else
     begin
          for i:=0 to MaxGenres do ComboBox.items.add(Genres[i]);
-         ComboBox.ListReadOnly := true
+         ComboBox.Style := csDropDownList
     end;
     combobox.sorted := true;
 
@@ -1493,7 +1493,7 @@ var
 begin
 	if pref.HideOnEdit.checked then
 	begin
-		//Gemmer Winamp vindue væk
+		// hide winamp window
 		winampShowed := ShowWindow(hwnd_Winamp, SW_HIDE);
 		plShowed := ShowWindow(hwnd_PL, SW_HIDE);
 		eqShowed := ShowWindow(hwnd_EQ, SW_HIDE);
@@ -1520,6 +1520,7 @@ begin
 					15: oggComponents.Add(editor.components[i])
 				end
   end;
+
 	Result := LoadValues;
   if result then
   begin
@@ -1904,7 +1905,7 @@ begin
 			  begin
 				  gray := gray or not EqualUndoRecs(SR1.values[i1], SR2.values[i2]);
 
-				  if PundoRec(SR2.values[i2]).Obj is TLookUpComboBox then //fylder i comboboxen
+				  if PundoRec(SR2.values[i2]).Obj is TJvComboBox then //fylder i comboboxen
           begin
 				    if PundoRec(SR2.values[i2]).undoType = UTstring then
 				    begin
@@ -1922,9 +1923,9 @@ begin
         setGrayed(comp, gray);
         if gray then
         begin
-          if PundoRec(SR2.values[i2]).Obj is TLookUpComboBox then
+          if PundoRec(SR2.values[i2]).Obj is TJvComboBox then
             for i:=0 to StrLst.count-1 do
-              TLookUpComboBox(PundoRec(SR2.values[i2]).Obj).items.add(StrLst.strings[i])
+              TJvComboBox(PundoRec(SR2.values[i2]).Obj).items.add(StrLst.strings[i])
         end
         else
         begin
@@ -2011,7 +2012,7 @@ begin
           setLength(SR.values, length(SR.values)+1);
           SR.values[length(SR.values)-1] := createStringUndo(target, str)
      end else
-		 if target is TLookUpComboBox then
+		 if target is TJvComboBox then
 		 begin
 					if (VarType(s) = varString) or (VarType(s) = varOleStr) then
 					begin
@@ -2382,7 +2383,7 @@ begin
       FStr := TFilestream.Create(CF, fmOpenRead or fmShareDenyNone);
 
       try
-        id3v2.LoadFromStream(Fstr);
+         id3v2.LoadFromStream(Fstr);
         SR.HasV2 := id3v2.Header.HasTag;
         if SR.HasV2 then SR.Id3V2ver := id3v2.ReadVersion;
         if SR.HasV2 then SR.MpegDataStartPos := id3v2.TagSize + 10 else SR.MpegDataStartPos := 0;
@@ -2542,10 +2543,10 @@ begin
           if not Q_SameText(key, WmaGroupIdent) and not Q_SameText(key, WmaCompilationIdent) and not Q_SameText(key, ApeOggWmaRatingIdent) then
           begin
           	SetLength(sDblArr, length(sDblArr)+1);
-            SetLength(sDblArr[length(sDblArr)-1], 2);
+            SetLength(sDblArr[length(sDblArr)-1], 3);
             sDblArr[length(sDblArr)-1][0] := key;
             sDblArr[length(sDblArr)-1][1] := '';
-            sDblArr[length(sDblArr)-1][1] := wsValue
+            sDblArr[length(sDblArr)-1][2] := wsValue
           end
         end;
 
@@ -2818,7 +2819,7 @@ begin
 
         //BPM
         if Id3v2.FindFirstFrame(fiBPM, id3Frame) then
-          FillInValue(TBPM, IntToStr(TJvID3NumberFrame(id3Frame).Value), SR)
+          FillInValue(TBPM, TJvID3TextFrame(id3Frame).Text, SR)
         else
           FillInValue(TBPM, '', SR);
 
@@ -3019,6 +3020,7 @@ var     sNode : PVirtualNode;
 				ProForm : TInputbox2;
 				cancelled : boolean;
 				i:integer;
+        th: TThread;
 begin
   TagLoaded := true; //To Prevent (re)loading on show
   //Groups BEGIN
@@ -3058,13 +3060,14 @@ begin
     FillInfoRec.firstRun := i=0;
     FillInfoRec.updateStats := true;
     FillInfoRec.useFileWriteBeginEnd := false;
+
     ReadFileThread.Start(FillInfoRec);
     while ReadFileThread.Runing do
     begin
       application.ProcessMessages;
       sleep(10)
     end;
-    //ReadFileThread.Thread.waitFor;
+
     dispose(FillInfoRec);
 
    if ShowProDlg then
@@ -3158,7 +3161,6 @@ begin
       end
     end
 end;
-
 
 procedure TEditor.CommTreeGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var Text: WideString);
@@ -3383,13 +3385,13 @@ begin
      UR2 := p2;
 		 if (UR1.Obj = UR2.Obj) and (UR1.Gray = UR2.Gray) then
      begin
-          if (UR1.Obj Is Tedit) or (UR1.Obj Is TLookUpComboBox) then
+          if (UR1.Obj Is Tedit) or (UR1.Obj Is TJvComboBox) then
           begin
                if UR1.UndoType = UTstring then s1 := PundoString(UR1.p).s else
-							 if UR1.UndoType = UTinteger then if PundoInteger(UR1.p).i = -1 then s1 := '' else s1 := TLookUpComboBox(UR1.Obj).items[PundoInteger(UR1.p).i];
+							 if UR1.UndoType = UTinteger then if PundoInteger(UR1.p).i = -1 then s1 := '' else s1 := TJvComboBox(UR1.Obj).items[PundoInteger(UR1.p).i];
 
                if UR2.UndoType = UTstring then s2 := PundoString(UR2.p).s else
-               if UR2.UndoType = UTinteger then if PundoInteger(UR2.p).i = -1 then s2 := '' else s2 := TLookUpComboBox(UR2.Obj).items[PundoInteger(UR2.p).i];
+               if UR2.UndoType = UTinteger then if PundoInteger(UR2.p).i = -1 then s2 := '' else s2 := TJvComboBox(UR2.Obj).items[PundoInteger(UR2.p).i];
 
                result := Q_SameStr(s1, s2)
           end else
@@ -3494,9 +3496,9 @@ begin
                result := (undoRec.Gray <> getGrayed(sender)) or not Q_SameStr(trim(Tedit(sender).text), trim(PundoString(undoRec.p).s));
                break
           end else
-          if (undoRec.Obj = sender) and (sender Is TLookUpComboBox) then
+          if (undoRec.Obj = sender) and (sender Is TJvComboBox) then
           begin
-               result := (undoRec.Gray <> getGrayed(sender)) or not Q_SameStr(trim(TLookUpComboBox(sender).text), trim(PundoString(undoRec.p).s));
+               result := (undoRec.Gray <> getGrayed(sender)) or not Q_SameStr(trim(TJvComboBox(sender).text), trim(PundoString(undoRec.p).s));
                break
           end else
           if (undoRec.Obj = sender) and (sender Is TcheckBox) then
@@ -3575,8 +3577,8 @@ begin
 
           result := undoRec
      end else
-     if sender is TLookUpComboBox then
-     begin //  TLookUpComboBox
+     if sender is TJvComboBox then
+     begin //  TJvComboBox
           new(UndoRec);
           UndoRec.UndoType := UTstring;
           UndoRec.Obj := sender;
@@ -3585,7 +3587,7 @@ begin
 
           new(stringRec);
           UndoRec.p := stringRec;
-          stringRec.s := TLookUpComboBox(sender).text;
+          stringRec.s := TJvComboBox(sender).text;
 
           result := undoRec
      end else
@@ -3787,8 +3789,8 @@ begin
 
           result := undoRec
      end else
-     if sender is TLookUpComboBox then
-     begin //  TLookUpComboBox
+     if sender is TJvComboBox then
+     begin //  TJvComboBox
           new(UndoRec);
           UndoRec.UndoType := UTstring;
           UndoRec.Obj := sender;
@@ -3797,7 +3799,7 @@ begin
 
 					new(stringRec);
           UndoRec.p := stringRec;
-          stringRec.s := TLookUpComboBox(sender).text;
+          stringRec.s := TJvComboBox(sender).text;
 
           result := undoRec
      end else
@@ -3851,10 +3853,10 @@ begin
           TEdit(target).color := clr;
           if clear then TEdit(target).text := ''
      end else
-     if target is TLookupComboBox then
+     if target is TJvComboBox then
      begin
-          TLookupComboBox(target).color := clr;
-          if clear then TLookupComboBox(target).text := ''
+          TJvComboBox(target).color := clr;
+          if clear then TJvComboBox(target).text := ''
      end else
      if target is TVirtualStringTree then
      begin
@@ -3882,7 +3884,7 @@ function TEditor.GetGrayed(Target: TObject):boolean;
 begin
   if target is TCheckbox then result := TCheckBox(target).state = cbGrayed else
   if target is TEdit then result :=  TEdit(target).color = colorGray else
-  if target is TLookupComboBox then result := TLookupComboBox(target).color = colorGray else
+  if target is TJvComboBox then result := TJvComboBox(target).color = colorGray else
   if target is TVirtualStringTree then result := TVirtualStringTree(target).color = colorGray else
   result := false
 end;
@@ -4006,8 +4008,8 @@ begin
     Except
     end
     end else
-    if undoRec.Obj is TLookUpComboBox then
-    begin          //  TLookUpComboBox
+    if undoRec.Obj is TJvComboBox then
+    begin          //  TJvComboBox
     	if undoRec.UndoType = UTstring then
       begin
       	stringRec := undoRec.p;
@@ -4016,14 +4018,14 @@ begin
       if undoRec.UndoType = UTinteger then
       begin
       	i := PundoInteger(undoRec.p).i;
-        s := TLookUpCombobox(undoRec.Obj).items[i]
+        s := TJvComboBox(undoRec.Obj).items[i]
       end;
       try
       	if updateGUI then
-	      	xpos := TLookUpComboBox(undoRec.Obj).selStart;
-        TLookUpComboBox(undoRec.Obj).text := s;
+	      	xpos := TJvComboBox(undoRec.Obj).selStart;
+        TJvComboBox(undoRec.Obj).text := s;
         if updateGUI then
-					TLookUpComboBox(undoRec.Obj).selStart := xpos;
+					TJvComboBox(undoRec.Obj).selStart := xpos;
       except
       end
     end else
@@ -4803,7 +4805,7 @@ var       aNode:PVirtualNode;
 begin
   if Obj = Id3v1Genre then setV1Genre(value) else
   if Obj is TEdit then TEdit(Obj).text := Value else
-  if Obj is TLookUpComboBox then TLookUpComboBox(Obj).text := Value else
+  if Obj is TJvComboBox then TJvComboBox(Obj).text := Value else
   if Obj = CommTree then
   begin
     if CommTree.RootNodeCount = 0 then
@@ -4906,7 +4908,7 @@ end;
 Function TEditor.getBoxValue(Obj: TObject):String;
 begin
 	if Obj is TEdit then result := TEdit(Obj).text;
-  if Obj is TLookUpComboBox then result := TLookUpComboBox(Obj).text
+  if Obj is TJvComboBox then result := TJvComboBox(Obj).text
 end;
 
 Procedure TEditor.CreateUndoIcons;
@@ -5110,7 +5112,7 @@ begin
 				sourceUR := doCreateUndo(source[j], false, false)
 			end;
 
-      if ((target is Tedit) and (source[j] is Tedit)) or ((target is TLookUpCombobox) and (source[j] is TLookUpCombobox)) then
+      if ((target is Tedit) and (source[j] is Tedit)) or ((target is TJvComboBox) and (source[j] is TJvComboBox)) then
       begin
         value := PundoString(sourceUR.p).s;
         result := true
@@ -5198,10 +5200,10 @@ begin
                       end
                 end else
                 begin// bruger værdier fra db
-                        if ((Obj Is Tedit) or (Obj Is TLookUpComboBox)) and ((DBobj Is Tedit) or (DBobj Is TLookUpComboBox)) then
+                        if ((Obj Is Tedit) or (Obj Is TJvComboBox)) and ((DBobj Is Tedit) or (DBobj Is TJvComboBox)) then
                         begin
-                             if DBobj is TLookUpComboBox then
-                                value := TLookUpComboBox(DBobj).text
+                             if DBobj is TJvComboBox then
+                                value := TJvComboBox(DBobj).text
                              else
                                  value := TEdit(DBobj).text;
                              result := true
@@ -5310,7 +5312,7 @@ begin
   if (Comp = TBPM) or (Comp = TIT2) or (Comp = TIT3) or (Comp = TIT1) or (Comp = TPE4) or (Comp = TPE3) or (Comp = TPE2) or (Comp = TPE1) or (Comp = TOPE) or (Comp = TCOM) or (Comp = TALB) or (Comp = TCOP) or (Comp = TOWN) or (Comp = TPUB) or (Comp = TENC) or (Comp = TEXT) then
   begin   //of Standard Frames
     if Comp is TEdit then Value := trim(TEdit(Comp).Text) else
-    if Comp is TLookUpCombobox then Value := trim(TLookUpCombobox(Comp).Text);
+    if Comp is TJvComboBox then Value := trim(TJvComboBox(Comp).Text);
 
     UpdateStringValueTabSync(SR, Comp, value, version);
 
@@ -5492,7 +5494,7 @@ begin
       doDeleteUndo(UR)
     end;
 
-    //Færdig med at komponere value
+    // Done composing value
     if Length(value) > 0 then
     begin
       TJvId3CustomTextFrame(id3v2.AddFrame(fiContentType)).Text := value
@@ -5990,7 +5992,7 @@ begin
     originalSource := p
   end;
 
-  if (currentSource.Obj Is Tedit) or (currentSource.Obj Is TLookUpComboBox) then
+  if (currentSource.Obj Is Tedit) or (currentSource.Obj Is TJvComboBox) then
   begin
   	if currentSource.Gray then
     	s1 := trim(PundoString(originalSource.p).s)
@@ -5998,7 +6000,7 @@ begin
 		  s1 := trim(PundoString(currentSource.p).s)
   end;
 
-  if (originalTarget.Obj Is Tedit) or (originalTarget.Obj Is TLookUpComboBox) then
+  if (originalTarget.Obj Is Tedit) or (originalTarget.Obj Is TJvComboBox) then
   begin
 //  	if currentTarget.Gray then
     	s2 := trim(PundoString(originalTarget.p).s)    //Always use the original value from the file
@@ -6006,12 +6008,12 @@ begin
 //		  s2 := trim(PundoString(currentTarget.p).s)
   end;
 
-  if ((currentSource.Obj Is Tedit) or (currentSource.Obj Is TLookUpComboBox)) and ((originalTarget.Obj Is Tedit) or (originalTarget.Obj Is TLookUpComboBox)) then
+  if ((currentSource.Obj Is Tedit) or (currentSource.Obj Is TJvComboBox)) and ((originalTarget.Obj Is Tedit) or (originalTarget.Obj Is TJvComboBox)) then
   begin
     if TComponent(originalTarget.Obj).tag = 11 then
     begin
-      if originalTarget.Obj is TLookUpComboBox then
-	      CompLen := TLookUpComboBox(originalTarget.Obj).maxlength
+      if originalTarget.Obj is TJvComboBox then
+	      CompLen := TJvComboBox(originalTarget.Obj).maxlength
       else
   	    CompLen := TEdit(originalTarget.Obj).maxlength;
 

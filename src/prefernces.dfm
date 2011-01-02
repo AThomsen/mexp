@@ -1,6 +1,6 @@
 object pref: Tpref
-  Left = 461
-  Top = 165
+  Left = 402
+  Top = 432
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   ClientHeight = 440
@@ -23,8 +23,6 @@ object pref: Tpref
     Width = 688
     Height = 12
     Align = alBottom
-    Min = 0
-    Max = 100
     Smooth = True
     TabOrder = 0
   end
@@ -312,16 +310,15 @@ object pref: Tpref
         ParentShowHint = False
         ShowHint = True
         TabOrder = 3
-        object Cpanel: TColorPickerButton
+        object Cpanel: TJvColorButton
           Left = 32
           Top = 40
           Width = 97
           Height = 22
-          CustomText = 'More colors'
-          PopupSpacing = 8
-          SelectionColor = clLime
-          ShowSystemColors = False
-          Transparent = False
+          OtherCaption = '&Other...'
+          Options = []
+          TabOrder = 1
+          TabStop = False
         end
         object cbUseCustomDbColor: TCheckBox
           Left = 16
@@ -658,12 +655,14 @@ object pref: Tpref
         OnGetText = HotTreeGetText
         Columns = <
           item
+            Color = clWindow
             Options = [coEnabled, coParentBidiMode, coVisible]
             Position = 0
             Width = 322
             WideText = 'Command'
           end
           item
+            Color = clWindow
             Options = [coEnabled, coParentBidiMode, coVisible]
             Position = 1
             Width = 104
@@ -862,7 +861,7 @@ object pref: Tpref
         Align = alTop
         Alignment = taCenter
         AutoSize = False
-        Caption = '©  2 0 1 0   -  A n d e r s   T h  o m s e n'
+        Caption = #169'  2 0 1 0   -  A n d e r s   T h  o m s e n'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = 5197647
         Font.Height = -9
@@ -1123,14 +1122,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Font Color'
           end
-          object FontColor: TColorPickerButton
+          object FontColor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object Backgroundcolorpanel: TPanel
@@ -1149,14 +1148,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Background color'
           end
-          object Backgroundcolor: TColorPickerButton
+          object Backgroundcolor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object SelTextColorPanel: TPanel
@@ -1175,14 +1174,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Selected text color'
           end
-          object SelTextColor: TColorPickerButton
+          object SelTextColor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object SelBarFocusedPanel: TPanel
@@ -1201,14 +1200,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Selection bar color (focused)'
           end
-          object SelBarFocused: TColorPickerButton
+          object SelBarFocused: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object SelBarUnFocusedPanel: TPanel
@@ -1227,14 +1226,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Selection bar color (unfocused)'
           end
-          object SelBarUnfocused: TColorPickerButton
+          object SelBarUnfocused: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object playingtxtcolorpanel: TPanel
@@ -1253,14 +1252,14 @@ object pref: Tpref
             Height = 13
             Caption = '"Playing" text color'
           end
-          object playingtextcolor: TColorPickerButton
+          object playingtextcolor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object headerColorPanel: TPanel
@@ -1279,14 +1278,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Header color'
           end
-          object headerColor: TColorPickerButton
+          object headerColor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object HeaderTextColorPanel: TPanel
@@ -1305,14 +1304,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Header text color'
           end
-          object HeaderTextColor: TColorPickerButton
+          object HeaderTextColor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object SearchFontColorPanel: TPanel
@@ -1331,14 +1330,14 @@ object pref: Tpref
             Height = 13
             Caption = 'Search field font color'
           end
-          object SearchFontColor: TColorPickerButton
+          object SearchFontColor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
         object KillTextColorPanel: TPanel
@@ -1357,14 +1356,14 @@ object pref: Tpref
             Height = 13
             Caption = '"Kill" text color'
           end
-          object KillTextColor: TColorPickerButton
+          object KillTextColor: TJvColorButton
             Left = 192
             Top = 0
             Width = 49
-            Height = 21
-            CustomText = 'More colors'
-            PopupSpacing = 8
-            ShowSystemColors = False
+            OtherCaption = '&Other...'
+            Options = []
+            TabOrder = 0
+            TabStop = False
           end
         end
       end
@@ -1787,9 +1786,9 @@ object pref: Tpref
           Align = alTop
           Alignment = taCenter
           Caption = 
-            'Peter Trübger'#13#10'Anders Krog'#13#10'Twan'#13#10'Annihilator'#13#10'Lars Jensen [www.' +
+            'Peter Tr'#252'bger'#13#10'Anders Krog'#13#10'Twan'#13#10'Annihilator'#13#10'Lars Jensen [www.' +
             'exenova.dk]'#13#10'DreamCool'#13#10'Penny Lane (English Pub)'#13#10'Darkcristal'#13#10'C' +
-            'arlos Andrés Osorio González'#13#10'Erik O'#39'Berg'#13#10'Tibor Szöke'#13#10'And many' +
+            'arlos Andr'#233's Osorio Gonz'#225'lez'#13#10'Erik O'#39'Berg'#13#10'Tibor Sz'#246'ke'#13#10'And many' +
             ' others!'#13#10' '
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText

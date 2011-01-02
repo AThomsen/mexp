@@ -37,7 +37,7 @@ uses
 				TagEditor,
         delfiles,filectrl,
         groupsunit,
-        dbprefe, freeres, inuptbox2U, Winsock,
+        dbprefe, inuptbox2U, Winsock,
 				jvChangeNotify, snap, MexpIniFile,
 				LanguageConstants, syncObjs, RecHashTable, wampmsg;
 
@@ -130,8 +130,8 @@ type
 
 const
 	AppName: String = 'MEXP';//Music Explorer / Music Explorer Plugin
-	ver : string = '0.1';
-  
+	ver : string = '0.1.0';
+
 	DB_FileVer : cardinal = 9;
   //8: Beta 9 rev. 2
   //9: Beta 9 rev. 2
@@ -1332,6 +1332,11 @@ begin
 		if assigned(pref) and (HiWord(LParam) in [57..69]) and (LoWord(LParam) > (242)) and (LoWord(LParam) < (264)) then
 			MainFormInstance.WinAmpPlaylistBtnClicked;
 
+  // Thread synchronization changed with Delphi6 and does not work from a dll.
+  // Therefore we need to call CheckSynchronize manually. Not sure if this is the
+  // best place for it but it seems to work. 
+  CheckSynchronize();
+
 	result := CallWindowProc(OldWinAMPWndProc, hWnd, Mess, wParam, lParam)
 end;
 
@@ -1741,7 +1746,7 @@ begin
   end;
 
 	if ForceQuit then
-  	application.terminate
+  	application.terminate;
 end
 	//When winamp is closed, this method is executed.
 	//here you can free alocated memory

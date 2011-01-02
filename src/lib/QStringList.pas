@@ -2,7 +2,13 @@ unit QStringList;
 
 interface
 uses
-    Classes, QStrings, consts;
+    Classes, QStrings,
+     {$IFDEF VER150} //This is for Delphi 7
+    RTLConsts 
+    {$ELSE}
+    Consts
+    {$ENDIF}
+    ;
 
 type
   TQ_StringList = class;

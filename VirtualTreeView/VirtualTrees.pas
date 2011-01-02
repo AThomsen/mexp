@@ -1,10 +1,11 @@
 unit VirtualTrees;
-
+
+
 // This version of VirtualTreeView contains some patches that makes it work with D5.
 // Also it has some additions needed for MEXP.
 //   - Anders Thomsen
 
-// Version 4.8.6
+// Version 4.8.7
 //
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in compliance
@@ -28,6 +29,17 @@ unit VirtualTrees;
 // (C) 1999-2001 digital publishing AG. All Rights Reserved.
 //----------------------------------------------------------------------------------------------------------------------
 //
+//  April 2010
+//    - Bug fix: Removed active column changing from TBaseVirtualTree.WMKeyDown to re-gain standard conforming
+//               behaviour for VK_NEXT and VK_PRIOR
+//    - Bug fix: Paint option toUseExplorerTheme works properly without defining columns
+//    - Bug fix: TBaseVirtualTree.PrepareBitmaps now correctly closes the theme handle
+//  January 2010
+//   - Bug fix: TBaseVirtualTree.AdjustTotalHeight now longer calculates wrong total heights if nodes have been
+//              made invisible
+//   - Bug fix: TCustomVirtualStringTree.OnMeasureTextWidth now works as intended
+//   - Bug fix: Added missing $IFDEFs concerning theming support
+//   - Bug fix: Removed default from properties TVirtualTreeColumn.Color and TVirtualTreeColumn.BiDiMode
 //  July 2009
 //   - Bug fix: TWorkerThread will no longer reference the tree after it has been destroyed (Mantis issue #384)
 //   - Bug fix: TBaseVirtualTree.InternalConnectNode checked the expanded state of the wrong node if Mode was
@@ -279,14 +291,14 @@ unit VirtualTrees;
 // For full document history see help file.
 //
 // Credits for their valuable assistance and code donations go to:
-//   Freddy Ertl, Marian Aldenhövel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
-//   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland Bedürftig (BCB)
+//   Freddy Ertl, Marian AldenhÃ¶vel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
+//   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland BedÃ¼rftig (BCB)
 //   Anthony Mills, Alexander Egorushkin (BCB), Mathias Torell (BCB), Frank van den Bergh, Vadim Sedulin, Peter Evans,
 //   Milan Vandrovec (BCB), Steve Moss, Joe White, David Clark, Anders Thomsen, Igor Afanasyev, Eugene Programmer,
 //   Corbin Dunn, Richard Pringle, Uli Gerhardt, Azza, Igor Savkic, Daniel Bauten, Timo Tegtmeier, Dmitry Zegebart,
 //   Andreas Hausladen
 // Beta testers:
-//   Freddy Ertl, Hans-Jürgen Schnorrenberg, Werner Lehmann, Jim Kueneman, Vadim Sedulin, Moritz Franckenstein,
+//   Freddy Ertl, Hans-JÃ¼rgen Schnorrenberg, Werner Lehmann, Jim Kueneman, Vadim Sedulin, Moritz Franckenstein,
 //   Wim van der Vegt, Franc v/d Westelaken
 // Indirect contribution (via publicly accessible work of those persons):
 //   Alex Denissov, Hiroyuki Hori (MMXAsm expert)
@@ -352,7 +364,7 @@ type
 {$endif COMPILER_12_UP}
 
 const
-  VTVersion = '4.8.6';
+  VTVersion = '4.8.7';
   VTTreeStreamVersion = 2;
   VTHeaderStreamVersion = 6;    // The header needs an own stream version to indicate changes only relevant to the header.
 
@@ -1287,14 +1299,14 @@ type
     property Owner: TVirtualTreeColumns read GetOwner;
   published
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
-    property BiDiMode: TBiDiMode read FBiDiMode write SetBiDiMode stored IsBiDiModeStored default bdLeftToRight;
+    property BiDiMode: TBiDiMode read FBiDiMode write SetBiDiMode stored IsBiDiModeStored;
     property CaptionAlignment: TAlignment read GetCaptionAlignment write SetCaptionAlignment
       stored IsCaptionAlignmentStored default taLeftJustify;
     property CaptionText: UnicodeString read FCaptionText stored False;
     property CheckType: TCheckType read FCheckType write SetCheckType default ctCheckBox;
     property CheckState: TCheckState read FCheckState write SetCheckState default csUncheckedNormal;
     property CheckBox: Boolean read FCheckBox write SetCheckBox default False;
-    property Color: TColor read FColor write SetColor stored IsColorStored default clWindow;
+    property Color: TColor read FColor write SetColor stored IsColorStored;
     property Hint: UnicodeString read FHint write FHint stored False;
     property ImageIndex: TImageIndex read FImageIndex write SetImageIndex default -1;
     property Layout: TVTHeaderColumnLayout read FLayout write SetLayout default blGlyphLeft;
@@ -3965,7 +3977,7 @@ const
 
   // Do not modify the copyright in any way! Usage of this unit is prohibited without the copyright notice
   // in the compiled binary file.
-  Copyright: string = 'Virtual Treeview © 1999, 2009 Mike Lischke';
+  Copyright: string = 'Virtual Treeview Â© 1999, 2010 Mike Lischke';
 
 var
   StandardOLEFormat: TFormatEtc = (
@@ -4868,7 +4880,7 @@ begin
 
       while WordCounter > 0 do
       begin
-        GetStringDrawRect(DC, Line + strutils.IfThen(WordsInLine > 0, ' ', '') + Words[WordCounter - 1], R, DrawFormat);
+        GetStringDrawRect(DC, Line + IfThen(WordsInLine > 0, ' ', '') + Words[WordCounter - 1], R, DrawFormat);
         if R.Right > Width then
         begin
           // If at least one word fits into this line then continue with the next line.
@@ -4897,7 +4909,7 @@ begin
         else
         begin
           Dec(WordCounter);
-          Line := Words[WordCounter] + strutils.IfThen(WordsInLine > 0, ' ', '') + Line;
+          Line := Words[WordCounter] + IfThen(WordsInLine > 0, ' ', '') + Line;
           Inc(WordsInLine);
         end;
       end;
@@ -4924,7 +4936,7 @@ begin
 
       while WordCounter > 0 do
       begin
-        GetStringDrawRect(DC, Line + strutils.IfThen(WordsInLine > 0, ' ', '') + Words[WordCounter - 1], R, DrawFormat);
+        GetStringDrawRect(DC, Line + IfThen(WordsInLine > 0, ' ', '') + Words[WordCounter - 1], R, DrawFormat);
         if R.Right > Width then
         begin
           // If at least one word fits into this line then continue with the next line.
@@ -4953,7 +4965,7 @@ begin
         else
         begin
           Dec(WordCounter);
-          Line := Line + strutils.IfThen(WordsInLine > 0, ' ', '') + Words[WordCounter];
+          Line := Line + IfThen(WordsInLine > 0, ' ', '') + Words[WordCounter];
           Inc(WordsInLine);
         end;
       end;
@@ -13795,8 +13807,7 @@ begin
   begin
     Run := Node;
     repeat
-      if vsVisible in Run.States then
-        Inc(Integer(Run.TotalHeight), Difference);
+      Inc(Integer(Run.TotalHeight), Difference);
       // If the node is not visible or the parent node is not expanded or we are already at the top
       // then nothing more remains to do.
       if not (vsVisible in Run.States) or (Run = FRoot) or
@@ -15542,6 +15553,7 @@ var
   //--------------- local function --------------------------------------------
 
   procedure FillBitmap (ABitmap: TBitmap);
+
   begin
     with ABitmap, Canvas do
     begin
@@ -15551,7 +15563,8 @@ var
       {$Ifdef ThemeSupport}
         if IsWinVistaOrAbove and (tsUseThemes in FStates) and (toUseExplorerTheme in FOptions.FPaintOptions) then
         begin
-          if not (coParentColor in FHeader.FColumns[FHeader.FMainColumn].FOptions) then
+          if (FHeader.FMainColumn > NoColumn) and not
+             (coParentColor in FHeader.FColumns[FHeader.FMainColumn].FOptions) then
             Brush.Color := FHeader.FColumns[FHeader.FMainColumn].Color
           else
             Brush.Color := Self.Color;
@@ -15707,6 +15720,11 @@ begin
     FDottedBrush := CreatePatternBrush(PatternBitmap);
     DeleteObject(PatternBitmap);
   end;
+
+  {$ifdef ThemeSupport}
+    if Theme <> 0 then
+      CloseThemeData(Theme);
+  {$endif}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -18000,31 +18018,7 @@ begin
               end;
             end;
           VK_PRIOR:
-            if Shift = [ssCtrl, ssShift] then
-              SetOffsetX(FOffsetX + ClientWidth)
-            else if [ssShift] = Shift then
-            begin
-              if FFocusedColumn = InvalidColumn then
-                NewColumn := FHeader.FColumns.GetFirstVisibleColumn
-              else
-              begin
-                Offset := FHeader.FColumns.GetVisibleFixedWidth;
-                NewColumn := FFocusedColumn;
-                while True do
-                begin
-                  TempColumn := FHeader.FColumns.GetPreviousVisibleColumn(NewColumn);
-                  NewWidth := FHeader.FColumns[NewColumn].Width;
-                  if (TempColumn <= NoColumn) or
-                     (Offset + NewWidth >= ClientWidth) or
-                     (coFixed in FHeader.FColumns[TempColumn].FOptions) then
-                    Break;
-                  NewColumn := TempColumn;
-                  Inc(Offset, NewWidth);
-                end;
-              end;
-              SetFocusedColumn(NewColumn);
-            end
-            else if ssCtrl in Shift then
+            if ssCtrl in Shift then
               SetOffsetY(FOffsetY + ClientHeight)
             else
             begin
@@ -18049,31 +18043,7 @@ begin
               FocusedNode := Node;
             end;
           VK_NEXT:
-            if Shift = [ssCtrl, ssShift] then
-              SetOffsetX(FOffsetX - ClientWidth)
-            else if [ssShift] = Shift then
-            begin
-              if FFocusedColumn = InvalidColumn then
-                NewColumn := FHeader.FColumns.GetFirstVisibleColumn
-              else
-              begin
-                Offset := FHeader.FColumns.GetVisibleFixedWidth;
-                NewColumn := FFocusedColumn;
-                while True do
-                begin
-                  TempColumn := FHeader.FColumns.GetNextVisibleColumn(NewColumn);
-                  NewWidth := FHeader.FColumns[NewColumn].Width;
-                  if (TempColumn <= NoColumn) or
-                     (Offset + NewWidth >= ClientWidth) or
-                     (coFixed in FHeader.FColumns[TempColumn].FOptions) then
-                    Break;
-                  NewColumn := TempColumn;
-                  Inc(Offset, NewWidth);
-                end;
-              end;
-              SetFocusedColumn(NewColumn);
-            end
-            else if ssCtrl in Shift then
+            if ssCtrl in Shift then
               SetOffsetY(FOffsetY - ClientHeight)
             else
             begin
@@ -25080,8 +25050,10 @@ begin
     end;
   end;
 
-  if Theme <> 0 then
-    CloseThemeData(Theme);
+  {$ifdef ThemeSupport}
+    if Theme <> 0 then
+      CloseThemeData(Theme);
+  {$endif ThemeSupport}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -28043,10 +28015,8 @@ begin
       if FHeader.UseColumns then
       begin
         HitInfo.HitColumn := FHeader.Columns.GetColumnAndBounds(Point(X, Y), ColLeft, ColRight, False);
-        // If auto column spanning is enabled and the column is left justified then look for the last non empty column.
-        if (toAutoSpanColumns in FOptions.FAutoOptions)
-        	and (HitInfo.HitColumn > NoColumn)
-          and (FHeader.Columns[HitInfo.HitColumn].Alignment = taLeftJustify) then
+        // If auto column spanning is enabled then look for the last non empty column.
+        if toAutoSpanColumns in FOptions.FAutoOptions then
         begin
           InitialColumn := HitInfo.HitColumn;
           // Search to the left of the hit column for empty columns.
@@ -33625,8 +33595,7 @@ procedure TCustomVirtualStringTree.AdjustPaintCellRect(var PaintInfo: TVTPaintIn
 // Note: the autospan feature can only be used with left-to-right layout.
 
 begin
-  if (toAutoSpanColumns in FOptions.FAutoOptions) and FHeader.UseColumns and (PaintInfo.BidiMode = bdLeftToRight)
-  and (FHeader.Columns[PaintInfo.Column].Alignment = taLeftJustify) then
+  if (toAutoSpanColumns in FOptions.FAutoOptions) and FHeader.UseColumns and (PaintInfo.BidiMode = bdLeftToRight) then
     with FHeader.FColumns, PaintInfo do
     begin
       // Start with the directly following column.
@@ -33915,9 +33884,9 @@ begin
       DrawTextW(Canvas.Handle, PWideChar(Text), Length(Text), R, DrawFormat, False);
     Size.cx := R.Right - R.Left;
   end;
+  Result := Size.cx;
   if Assigned(FOnMeasureTextWidth) then
     FOnMeasureTextWidth(Self, Canvas, Node, Column, Text, Result);
-  Result := Size.cx;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -34286,7 +34255,7 @@ function TCustomVirtualStringTree.ContentToHTML(Source: TVSTTextSourceType; Capt
 
 // Renders the current tree content (depending on Source) as HTML text encoded in UTF-8.
 // If Caption is not empty then it is used to create and fill the header for the table built here.
-// Based on ideas and code from Frank van den Bergh and Andreas Hörstemeier.
+// Based on ideas and code from Frank van den Bergh and Andreas HÃ¶rstemeier.
 
 type
   UCS2 = Word;
@@ -34800,7 +34769,7 @@ end;
 function TCustomVirtualStringTree.ContentToRTF(Source: TVSTTextSourceType): AnsiString;
 
 // Renders the current tree content (depending on Source) as RTF (rich text).
-// Based on ideas and code from Frank van den Bergh and Andreas Hörstemeier.
+// Based on ideas and code from Frank van den Bergh and Andreas HÃ¶rstemeier.
 
 var
   Fonts: TStringList;
@@ -35719,4 +35688,4 @@ finalization
   Watcher := nil;
 
 end.
-
+

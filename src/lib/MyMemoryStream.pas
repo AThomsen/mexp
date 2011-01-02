@@ -1,7 +1,12 @@
 unit MyMemoryStream;
 
 interface
-uses Windows, Classes, Consts;
+uses Windows, Classes,
+{$IFDEF VER150} //This is for Delphi 7
+    RTLConsts 
+    {$ELSE}
+    Consts
+    {$ENDIF};
 
 type
 	TMyMemorystream = class(TMemorystream)

@@ -32,8 +32,6 @@ object dbpref: Tdbpref
     Width = 507
     Height = 16
     Align = alBottom
-    Min = 0
-    Max = 100
     TabOrder = 0
   end
   object Panel1: TPanel
@@ -106,15 +104,15 @@ object dbpref: Tdbpref
         Height = 13
         Caption = 'Color'
       end
-      object Cpanel: TColorPickerButton
+      object Cpanel: TJvColorButton
         Left = 288
         Top = 52
         Width = 185
         Height = 22
-        CustomText = 'More Colors'
-        PopupSpacing = 8
-        SelectionColor = 33023
-        ShowSystemColors = False
+        OtherCaption = '&Other...'
+        Options = []
+        TabOrder = 11
+        TabStop = False
       end
       object name: TEdit
         Left = 56

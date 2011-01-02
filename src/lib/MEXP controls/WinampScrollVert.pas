@@ -474,7 +474,7 @@ end;
 
 procedure Register;
 begin
-	RegisterComponents('Thomsen', [TWinampScrollVert]);
+	RegisterComponents('MEXP', [TWinampScrollVert]);
 end;
 
 end.

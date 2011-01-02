@@ -27,8 +27,9 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, 
-  StdCtrls, ExtCtrls, ComCtrls, ShlObj, Menus, filectrl, ColorPickerButton,
-  QStrings, JvListBox, JvCtrls, MEXPtypes, JvExStdCtrls, JvTextListBox;
+  StdCtrls, ExtCtrls, ComCtrls, ShlObj, Menus, filectrl,
+  QStrings, JvListBox, JvCtrls, MEXPtypes, JvExStdCtrls, JvTextListBox, JvColorButton,
+  JvExControls, JvColorBox;
 
 type
   Tdbpref = class(TForm)
@@ -47,7 +48,7 @@ type
     Label6: TLabel;
     Label7: TLabel;
     Color: TLabel;
-    Cpanel: TColorPickerButton;
+    Cpanel: TJvColorButton;
     name: TEdit;
     recsub: TCheckBox;
     readonly: TRadioButton;
@@ -194,7 +195,7 @@ begin
              dbs[length(dbs)-1].TreeStructureIndex := MainFormInstance.GetDefaultTreeStructureIndex;
              dbs[length(dbs)-1].name := name.text;
              dbs[length(dbs)-1].media :=integer(readonly.checked) + (integer(notreadonly.checked) *2) + (integer(network.checked) *3);
-             dbs[length(dbs)-1].color := Cpanel.SelectionColor;
+             dbs[length(dbs)-1].color := CPanel.Color;
              dbs[length(dbs)-1].UseCustomColor := cbUseCustomColor.checked;
              dbs[length(dbs)-1].filename := '';  //laves i unloadsaveall
              dbs[length(dbs)-1].loaded := true;
@@ -409,7 +410,7 @@ begin
                   dbs[index].name := name.text
              end;
              dbs[index].media :=integer(readonly.checked) + (integer(notreadonly.checked) *2) + (integer(network.checked) *3);
-						 dbs[index].color := Cpanel.selectioncolor;
+						 dbs[index].color := Cpanel.Color;
              dbs[index].UseCustomColor := cbUseCustomColor.checked;
 						 dbs[index].recursive := recsub.checked;
 						 dbs[index].calculateCRC := CalcCRCcb.Checked;

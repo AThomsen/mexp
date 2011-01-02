@@ -17,7 +17,7 @@ All Rights Reserved.
 Contributor(s):
 
 You may retrieve the latest version of this file at the Project JEDI's JVCL home page,
-located at http://jvcl.sourceforge.net
+located at http://jvcl.delphi-jedi.org
 
 Known Issues:
   * Encryption, compression not supported
@@ -25,7 +25,7 @@ Known Issues:
   * Some tags are not supported, see var DefaultFrameClasses. Values nil in that
     list indicate not supported frames.
 -----------------------------------------------------------------------------}
-// $Id: JvID3v2Base.pas 12252 2009-03-21 22:18:25Z ahuser $
+// $Id: JvID3v2Base.pas 12585 2009-10-29 20:27:56Z ahuser $
 
 unit MyID3v2Base;
 
@@ -1196,9 +1196,9 @@ function NiceGenreToGenre(const ANiceGenre: string): string;
 {$IFDEF UNITVERSIONING}
 const
   UnitVersioning: TUnitVersionInfo = (
-    RCSfile: '$URL: https://jvcl.svn.sourceforge.net/svnroot/jvcl/branches/JVCL3_37_PREPARATION/run/JvID3v2Base.pas $';
-    Revision: '$Revision: 12252 $';
-    Date: '$Date: 2009-03-21 23:18:25 +0100 (sam., 21 mars 2009) $';
+    RCSfile: '$URL: https://jvcl.svn.sourceforge.net/svnroot/jvcl/tags/JVCL3_39/run/JvID3v2Base.pas $';
+    Revision: '$Revision: 12585 $';
+    Date: '$Date: 2009-10-29 21:27:56 +0100 (jeu., 29 oct. 2009) $';
     LogPath: 'JVCL\run'
   );
 {$ENDIF UNITVERSIONING}
@@ -1213,10 +1213,9 @@ uses
   {$IFDEF HAS_UNIT_ANSISTRINGS}
   AnsiStrings,
   {$ENDIF HAS_UNIT_ANSISTRINGS}
-  JvVCL5Utils,
-  JvJclUtils, // SameFileName() for Delphi 5
+  JvJclUtils,
   JclBase, JclFileUtils, JclLogic, JclDateTime,
-  JclStringConversions,
+  JclStringConversions, JclWideStrings,
   JvConsts, JvResources;
 
 {$IFDEF COMPILER12_UP}
@@ -1304,7 +1303,7 @@ var
     nil, { fiSyncedLyrics }
     nil, { fiSyncedTempo }
     TJvID3TextFrame, { fiAlbum }
-    TJvID3NumberFrame, { fiBPM }
+    TJvID3TextFrame, { fiBPM } // was NumberFrame changed 03/15/10 DW
     TJvID3SimpleListFrame, { fiComposer }
     TJvID3SimpleListFrame, { fiContentType }
     TJvID3TextFrame, { fiCopyright }
@@ -1546,7 +1545,7 @@ begin
 end;
 
 function CheckIsLanguageList(Frame: TJvID3Frame;
-  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP};
+  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP};
   const HandleError: TJvID3HandleError): Boolean;
 var
   I: Integer;
@@ -1568,7 +1567,7 @@ begin
 end;
 
 function CheckList(Frame: TJvID3Frame;
-  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP};
+  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP};
   const ASeparator: WideChar;
   const HandleError: TJvID3HandleError): Boolean;
 var
@@ -1779,7 +1778,7 @@ begin
 end;
 
 procedure ExtractFixedStrings(const Content: WideString; const ALength: Integer;
-  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP});
+  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP});
 var
   P, ContentPtr: PWideChar;
   S: WideString;
@@ -1817,7 +1816,7 @@ begin
 end;
 
 procedure ExtractStrings(Separator: WideChar; const Content: WideString;
-  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP});
+  Strings: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP});
 var
   Tail: PWideChar;
   S: WideString;
@@ -4348,8 +4347,9 @@ begin
   FList := TStringList.Create;
   TStringList(FList).OnChange := ListChanged;
   {$ELSE}
-  FList := TWideStringList.Create;
-  TWideStringList(FList).OnChange := ListChanged;
+  FList := JclUnicode.TWideStringList.Create;
+  FList.NormalizationForm := nfNone;
+  JclUnicode.TWideStringList(FList).OnChange := ListChanged;
   {$ENDIF COMPILER12_UP}
 end;
 
@@ -4520,7 +4520,7 @@ begin
   Result := (Assigned(Frame) and (Frame.FrameID = FrameID)) or inherited SameUniqueIDAs(Frame);
 end;
 
-procedure TJvID3DoubleListFrame.SetList(Value: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP});
+procedure TJvID3DoubleListFrame.SetList(Value: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP});
 begin
   FList.Assign(Value);
   Changed;
@@ -7081,8 +7081,9 @@ begin
   FList := TJvID3StringList.Create;
   TStringList(FList).OnChange := ListChanged;
   {$ELSE}
-  FList := TWideStringList.Create;
-  TWideStringList(FList).OnChange := ListChanged;
+  FList := JclUnicode.TWideStringList.Create;
+  FList.NormalizationForm := nfNone;
+  JclUnicode.TWideStringList(FList).OnChange := ListChanged;
   {$ENDIF COMPILER12_UP}
 end;
 
@@ -7229,13 +7230,13 @@ begin
     {$IFDEF COMPILER12_UP}
     Result := (FList as TJvID3StringList).GetSeparatedText(Separator)
     {$ELSE}
-    Result := (FList as TWideStringList).GetSeparatedText(Separator)
+    Result := (FList as JclUnicode.TWideStringList).GetSeparatedText(Separator)
     {$ENDIF COMPILER12_UP}
   else
     {$IFDEF COMPILER12_UP}
     Result := (FList as TJvID3StringList).GetSeparatedText('');
     {$ELSE}
-    Result := (FList as TWideStringList).GetSeparatedText('');
+    Result := (FList as JclUnicode.TWideStringList).GetSeparatedText('');
     {$ENDIF COMPILER12_UP}
 end;
 
@@ -7277,7 +7278,7 @@ begin
     inherited ReadFrame;
 end;
 
-procedure TJvID3SimpleListFrame.SetList(Value: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP});
+procedure TJvID3SimpleListFrame.SetList(Value: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP});
 begin
   FList.Assign(Value);
 end;
@@ -7854,8 +7855,8 @@ begin
         Capacity := Pos;
       Size := Pos;
     end;
-    FillChar(Pointer(Longint(Memory) + Position)^, Count, 0);
-    //System.Move(Buffer, Pointer(Longint(FMemory) + FPosition)^, Count);
+    FillChar(Pointer(PAnsiChar(Memory) + Position)^, Count, 0);
+    //System.Move(Buffer, Pointer(PAnsiChar(FMemory) + FPosition)^, Count);
     Position := Pos;
     Result := Count;
     Exit;

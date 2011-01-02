@@ -18,7 +18,7 @@ unit WMAfile;
 interface
 
 uses
-	Classes, SysUtils, StreamCopier, QStrings, unicode;
+	Classes, SysUtils, StreamCopier, QStrings, JclUnicode, JclWideStrings;
 
 const
   { Channel modes }
