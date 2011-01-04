@@ -1,8 +1,7 @@
 unit VirtualTrees;
 
 
-// This version of VirtualTreeView contains some patches that makes it work with D5.
-// Also it has some additions needed for MEXP.
+// This version of VirtualTreeView contains some patches needed for MEXP.
 //   - Anders Thomsen
 
 // Version 4.8.7
@@ -28015,8 +28014,11 @@ begin
       if FHeader.UseColumns then
       begin
         HitInfo.HitColumn := FHeader.Columns.GetColumnAndBounds(Point(X, Y), ColLeft, ColRight, False);
-        // If auto column spanning is enabled then look for the last non empty column.
-        if toAutoSpanColumns in FOptions.FAutoOptions then
+        // If auto column spanning is enabled and the column is left justified then look for the last non empty column.
+		// Changed by Anders Thomsen to fix left justify alignment
+        if (toAutoSpanColumns in FOptions.FAutoOptions)
+        	and (HitInfo.HitColumn > NoColumn)
+          and (FHeader.Columns[HitInfo.HitColumn].Alignment = taLeftJustify) then
         begin
           InitialColumn := HitInfo.HitColumn;
           // Search to the left of the hit column for empty columns.
@@ -33595,7 +33597,9 @@ procedure TCustomVirtualStringTree.AdjustPaintCellRect(var PaintInfo: TVTPaintIn
 // Note: the autospan feature can only be used with left-to-right layout.
 
 begin
-  if (toAutoSpanColumns in FOptions.FAutoOptions) and FHeader.UseColumns and (PaintInfo.BidiMode = bdLeftToRight) then
+  // Changed by Anders Thomsen to fix left justify alignment
+  if (toAutoSpanColumns in FOptions.FAutoOptions) and FHeader.UseColumns and (PaintInfo.BidiMode = bdLeftToRight)
+  and (FHeader.Columns[PaintInfo.Column].Alignment = taLeftJustify) then
     with FHeader.FColumns, PaintInfo do
     begin
       // Start with the directly following column.
