@@ -7507,7 +7507,7 @@ Begin
 
                 for x:=0 to id3v2SimpleListFrame.List.Count-1 do
                 begin
-                  genreIndex := getGenreID(id3v2SimpleListFrame.List[x]);
+                  genreIndex := getGenreID(GenreToNiceGenre(id3v2SimpleListFrame.List[x]));
                   if genreIndex >= 0 then
                   begin
                     b := false;
@@ -20832,7 +20832,7 @@ begin
           b2 := false;	// check if a valid v1 genre
 	        for i:=0 to id3LstFrm.List.Count-1 do
           begin
-            id := GetGenreID(id3LstFrm.List[i]);
+            id := GetGenreID(GenreToNiceGenre(id3LstFrm.List[i]));
 	        	b1 := b1 or (Fid3v1.GenreID = id);
             b2 := b2 or (id <= MAXGENRES)
           end;
@@ -31469,7 +31469,7 @@ begin
               resampler := TKernelResampler.Create();
               TKernelResampler(resampler).Kernel := TLanczosKernel.Create();
               StretchTransfer(bm1, bm1.BoundsRect, bm1.BoundsRect, bm2, bm2.BoundsRect, resampler, dmOpaque);	//sfMitchell - Lanczos er bedst :)
-              TKernelResampler(resampler).Kernel.Free;
+//              TKernelResampler(resampler).Kernel.Free;
               resampler.Free;
 
               bm2.Free;

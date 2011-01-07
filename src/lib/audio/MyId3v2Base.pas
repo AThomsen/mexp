@@ -7248,6 +7248,9 @@ end;
 
 procedure TJvID3SimpleListFrame.SetText(const ANewText: WideString);
 begin
+  // remove old values (added for mexp 0.1.1)
+  List.Clear;
+
   if FixedStringLength >= 0 then
     ExtractFixedStrings(ANewText, FixedStringLength, List)
   else

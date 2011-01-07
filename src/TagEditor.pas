@@ -2922,8 +2922,10 @@ begin
         SetLength(sDblArr, 0);
 				for i:=0 to id3v2.Frames.Count-1 do
         begin
-        	s := id3v2.Frames[i].FrameName;
-         	if Q_SameTextL(s, 'T', 1) and not IsId3v2Control(s, self) and (id3v2.Frames[i].FrameID <> fiRecordingTime) then
+          id3Frame := id3v2.Frames[i];
+        	s := id3Frame.FrameName;
+         	if Q_SameTextL(s, 'T', 1) and not IsId3v2Control(s, self) and (id3Frame.FrameID <> fiRecordingTime) and
+            ((id3Frame is TJvId3UserFrame) or (id3Frame is TJvId3CustomTextFrame)) then
           begin
           	SetLength(sDblArr, length(sDblArr)+1);
             SetLength(sDblArr[length(sDblArr)-1], 3);
