@@ -7668,6 +7668,7 @@ Begin
                     	cf := PCustomField(FieldList.List^[x]);
                       if Q_SameText(Id3v2FrameName, cf.Id3v2FieldName) then
                       begin
+                        s := '';
                       	if Id3v2FrameId = fiUserText then
                         begin
                           txxxFrame := TJvID3UserFrame(Id3v2.Frames[i]);
