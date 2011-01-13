@@ -27,16 +27,18 @@ interface
 
 uses
 	Windows, Messages, SysUtils, Classes, Controls, Forms,
-	VirtualTrees, ExtCtrls, StdCtrls, QStrings, ComCtrls, MEXPtypes;
+	VirtualTrees, ExtCtrls, StdCtrls, ComCtrls, StrUtils, MEXPtypes;
 
 Type
-		TCommand = (Command_replace, Command_InsertText, Command_Trim, Command_cut, Command_cutLeft, Command_cutRight);
+		TCommand = (Command_replace, Command_InsertText, Command_Substring, Command_Delete, Command_cutLeft, Command_cutRight);
+    TCommandArgument = (caReplace_CS, caReplace_CI, caInsertText_Prefix, caInsertText_Append, caInsertText_AtPos);
 
     TCommandRec = record
-            command : TCommand;
+            command: TCommand;
+            argument: TCommandArgument;
 						field : Integer;
-            Pos1 : integer;
-            Pos2:  integer;
+            Pos : integer;
+            Count:  integer;
             String1       :  String;
             String2       :  String;
     end;
@@ -54,11 +56,11 @@ type
     replaceFindEdit: TEdit;
     ReplaceWithEdit: TEdit;
     Label4: TLabel;
-    FromToPanel: TPanel;
-    Label5: TLabel;
-    Label6: TLabel;
+    FromCountPanel: TPanel;
+    lblFrom: TLabel;
+    lblCount: TLabel;
     FromEdit: TEdit;
-    ToEdit: TEdit;
+    CountEdit: TEdit;
     CutByPanel: TPanel;
     Label7: TLabel;
     CutByEdit: TEdit;
@@ -85,6 +87,7 @@ type
     pbar: TProgressBar;
     Button2: TButton;
     Button3: TButton;
+    chkReplaceCS: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure AddCommandBtnClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -99,7 +102,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure CutByEditChange(Sender: TObject);
     procedure FromEditChange(Sender: TObject);
-    procedure ToEditChange(Sender: TObject);
+    procedure CountEditChange(Sender: TObject);
     procedure replaceFindEditChange(Sender: TObject);
     procedure ReplaceWithEditChange(Sender: TObject);
     procedure FieldCBChange(Sender: TObject);
@@ -112,6 +115,7 @@ type
 		procedure StartBtnClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
+    procedure chkReplaceCSClick(Sender: TObject);
   private
     { Private declarations }
       Procedure LoadLanguageGUI;
@@ -119,12 +123,10 @@ type
       function GetCR:PCommandRec;
       procedure UpdatePreview;
       function GetFieldCbItemIndex(field: Integer): Integer;
-//      function getFieldTagValue(CR:PCommandRec):integer;
       function ChangeText(s:String; CR:PCommandRec):String;  overload;
       function ChangeText(s:String):String;     overload;
       function ChangeText(s:String; field:integer):String;  overload;
 
-//      function ChangeText2(script:string; recPointer:pointer):String;
   public
         list:Tlist;
     { Public declarations }
@@ -140,52 +142,52 @@ uses
 
 Procedure TTagCutter.LoadLanguageGUI;
 begin
-		 GroupBox3.Caption := GetText(TXT_CutterCommands) + ' ';
-     AddCommandBtn.Caption := GetText(TXT_Add);
-     Button1.Caption := GetText(TXT_Remove);
-     GroupBox1.Caption := GetText(TXT_CutterCommand);
-     label1.Caption := GetText(TXT_CutterCommand);
-     label2.Caption := GetText(TXT_CutterField);
+  GroupBox3.Caption := GetText(TXT_CutterCommands) + ' ';
+  AddCommandBtn.Caption := GetText(TXT_Add);
+  Button1.Caption := GetText(TXT_Remove);
+  GroupBox1.Caption := GetText(TXT_CutterCommand);
+  label1.Caption := GetText(TXT_CutterCommand);
+  label2.Caption := GetText(TXT_CutterField);
 
-     CommandCB.Items.Add(GetText(TXT_CutterReplaceCmd));
-     CommandCB.Items.Add(GetText(TXT_CutterInsertCmd));
-     CommandCB.Items.Add(GetText(TXT_CutterTrimCmd));
-     CommandCB.Items.Add(GetText(TXT_CutterCutCmd));
-     CommandCB.Items.Add(GetText(TXT_CutterCutLeftCmd));
-     CommandCB.Items.Add(GetText(TXT_CutterCutRightCmd));
+  CommandCB.Items.Add(GetText(TXT_CutterReplaceCmd));
+  CommandCB.Items.Add(GetText(TXT_CutterInsertCmd));
+  CommandCB.Items.Add(GetText(TXT_CutterSubstringCmd));
+  CommandCB.Items.Add(GetText(TXT_CutterDeleteCmd));
+  CommandCB.Items.Add(GetText(TXT_CutterCutLeftCmd));
+  CommandCB.Items.Add(GetText(TXT_CutterCutRightCmd));
 
-     FieldCB.Items.AddObject(GetText(TXT_ColumnArtist), TObject(FArtist));
-     FieldCB.Items.AddObject(GetText(TXT_ColumnTitle), TObject(FTitle));
-     FieldCB.Items.AddObject(GetText(TXT_ColumnAlbum), TObject(FAlbum));
-     FieldCB.Items.AddObject(GetText(TXT_ColumnGenre), TObject(FGenre));
-     FieldCB.Items.AddObject(GetText(TXT_ColumnComment), TObject(FComment));
+  FieldCB.Items.AddObject(GetText(TXT_ColumnArtist), TObject(FArtist));
+  FieldCB.Items.AddObject(GetText(TXT_ColumnTitle), TObject(FTitle));
+  FieldCB.Items.AddObject(GetText(TXT_ColumnAlbum), TObject(FAlbum));
+  FieldCB.Items.AddObject(GetText(TXT_ColumnGenre), TObject(FGenre));
+  FieldCB.Items.AddObject(GetText(TXT_ColumnComment), TObject(FComment));
 
-     label9.Caption := GetText(TXT_CutterInsertTextEdit);
-     InsertRadio1.Caption := GetText(TXT_CutterInsertBefore);
-     InsertRadio2.Caption := GetText(TXT_CutterAppend);
-     InsertRadio3.Caption := GetText(TXT_CutterInsertAtPos);
+  label9.Caption := GetText(TXT_CutterInsertTextEdit);
+  InsertRadio1.Caption := GetText(TXT_CutterInsertBefore);
+  InsertRadio2.Caption := GetText(TXT_CutterAppend);
+  InsertRadio3.Caption := GetText(TXT_CutterInsertAtPos);
 
-     label7.Caption := GetText(TXT_CutterCutLabel);
-     label8.Caption := GetText(TXT_CutterCharacters);
+  label7.Caption := GetText(TXT_CutterCutLabel);
+  label8.Caption := GetText(TXT_CutterCharacters);
 
-     label5.Caption := GetText(TXT_CutterFromLabel);
-     label6.Caption := GetText(TXT_CutterToLabel);
+  lblFrom.Caption := GetText(TXT_CutterFromLabel);
+  lblCount.Caption := GetText(TXT_CutterCountLabel);
 
-     label3.Caption := GetText(TXT_CutterReplaceLabel);
-     label4.Caption := GetText(TXT_CutterWithLabel);
+  label3.Caption := GetText(TXT_CutterReplaceLabel);
+  label4.Caption := GetText(TXT_CutterWithLabel);
 
-     GroupBox2.Caption := GetText(TXT_CutterPreview) + ' ';
-     PreviewTree.Header.Columns[0].Text := GetText(TXT_CutterOldValue);
-     PreviewTree.Header.Columns[1].Text := GetText(TXT_CutterNewValue);
+  GroupBox2.Caption := GetText(TXT_CutterPreview) + ' ';
+  PreviewTree.Header.Columns[0].Text := GetText(TXT_CutterOldValue);
+  PreviewTree.Header.Columns[1].Text := GetText(TXT_CutterNewValue);
 
-     GroupBox4.Caption := GetText(TXT_CutterOptions);
-		 UpdateTags.Caption := GetText(TXT_UpdateTags);
-		 Button3.Caption := GetTExt(TXT_SpecifyTags);
+  GroupBox4.Caption := GetText(TXT_CutterOptions);
+  UpdateTags.Caption := GetText(TXT_UpdateTags);
+  Button3.Caption := GetTExt(TXT_SpecifyTags);
 
-     StartBtn.Caption := GetText(TXT_Start);
-     Button2.Caption  := GetText(TXT_Cancel);
+  StartBtn.Caption := GetText(TXT_Start);
+  Button2.Caption  := GetText(TXT_Cancel);
 
-     Caption := GetText(TXT_TagCutterCaption)
+  Caption := GetText(TXT_TagCutterCaption)
 end;
 
 function TTagCutter.GetFieldCbItemIndex(field: Integer): Integer;
@@ -218,90 +220,76 @@ function TTagCutter.changeText(s:String; field:integer):String;
 var
    aNode : PVirtualNode;
 begin
-     aNode := CommandTree.GetFirst;
-     while aNode <> nil do
-     begin
-          if PCommandRec(CommandTree.GetNodeData(aNode)).field = field then
-             s := ChangeText(s, CommandTree.GetNodeData(aNode));
-          aNode := CommandTree.GetNext(aNode)
-     end;
-     result := s
+  aNode := CommandTree.GetFirst;
+  while aNode <> nil do
+  begin
+    if PCommandRec(CommandTree.GetNodeData(aNode)).field = field then
+      s := ChangeText(s, CommandTree.GetNodeData(aNode));
+    aNode := CommandTree.GetNext(aNode);
+  end;
+  result := s
 end;
 
 function TTagCutter.ChangeText(s:String; CR:PCommandRec):String;
 begin
-     if CR.command = Command_Replace then
-     begin
-          if length(CR.String1)=0 then
-             result := s
-          else result := Q_ReplaceText(s, CR.String1, CR.String2)
-     end else
-     if CR.command = Command_InsertText then
-     begin
-          if length(CR.String1)=0 then
-             result := s
-          else
-          begin
-               if CR.Pos1 = 0 then //insert in beginning
-                  result := CR.String1 + s else
-               if CR.Pos1 = 1 then //append
-                  result := s + CR.String1 else
-               result := Q_CopyRange(s, 1, CR.Pos2) + CR.String1 + Q_CopyFrom(s, CR.Pos2+1)
-          end
-     end else
-     if CR.command = Command_Trim then
-     begin
-          result := Q_CopyRange(s, CR.Pos1+1, CR.Pos2+1)
-     end else
-     if CR.command = Command_Cut then
-     begin
-          result := Q_CopyRange(s, 1, CR.Pos1) + Q_CopyFrom(s, CR.Pos2+1)
-     end else
-     if CR.command = Command_CutLeft then
-     begin
-          result := s;
-          Q_CutLeft(result, CR.Pos1)
-     end else
-     if CR.Command = Command_CutRight then
-     begin
-          result := s;
-          Q_CutRight(result, CR.Pos1)
-     end
-end;
+  case CR.command of
+    Command_Replace:
+    begin
+      if CR.argument = caReplace_CS then
+        result := AnsiReplaceStr (s, CR.String1, CR.String2)
+      else
+        result := AnsiReplaceText (s, CR.String1, CR.String2)
+    end;
 
-{function TTagCutter.getFieldTagValue(CR:PCommandRec):integer;
-begin
-     case CR.Field of
-          0: result := FArtist;
-          1: result := FTitle;
-          2: result := FAlbum;
-          3: result := FGenre;
-     else result := FComment;
-     end
-end;   }
+    Command_InsertText:
+    begin
+      case CR.argument of
+        caInsertText_Prefix:  result := CR.String1 + s;
+        caInsertText_Append:  result := s + CR.String1;
+        caInsertText_AtPos:
+        begin
+          result := s;
+          Insert(CR.String1, result, CR.Pos)
+        end
+      end
+    end;
+
+    Command_Substring:  result := AnsiMidStr(s, CR.Pos, CR.Count);
+
+    Command_Delete:
+    begin
+      result := s;
+      Delete(result, CR.Pos, CR.Count);
+    end;
+
+    Command_CutLeft:    result := AnsiMidStr(s, CR.Count + 1, Length(s));
+
+    Command_CutRight:   result := AnsiMidStr(s, 1, Length(s) - CR.Count);
+  end;
+end;
 
 function TTagCutter.GetCR:PCommandRec;
 var
    aNode : PVirtualNode;
 begin
-     aNode := CommandTree.GetFirstSelected;
-     if assigned(aNode) then
-        result := CommandTree.GetNodeData(aNode)
-     else result := nil
+  aNode := CommandTree.GetFirstSelected;
+  if assigned(aNode) then
+    result := CommandTree.GetNodeData(aNode)
+  else result := nil
 end;
 
 procedure TTagCutter.updatePreview;
 begin
-     CommandTree.repaint;
-     PreviewTree.repaint
+  CommandTree.Invalidate;
+  PreviewTree.Invalidate
 end;
 
 procedure TTagCutter.FormCreate(Sender: TObject);
 begin
-     Icon := MainFormInstance.Icon1.picture.icon;
-     list := Tlist.create;
-     CommandTree.NodeDataSize := SizeOf(TCommandRec);
-     LoadLanguageGUI
+  Icon := MainFormInstance.Icon1.picture.icon;
+  list := Tlist.create;
+  CommandTree.NodeDataSize := SizeOf(TCommandRec);
+  LoadLanguageGUI
 end;
 
 procedure TTagCutter.AddCommandBtnClick(Sender: TObject);
@@ -319,8 +307,8 @@ end;
 
 procedure TTagCutter.FormShow(Sender: TObject);
 begin
-     PreviewTree.RootNodeCount := list.Count;
-     ProjektCommand
+  PreviewTree.RootNodeCount := list.Count;
+  ProjektCommand
 end;
 
 procedure TTagCutter.FormDestroy(Sender: TObject);
@@ -333,35 +321,44 @@ var
    aNode : PVirtualNode;
    CR : PCommandRec;
 begin
-     aNode := CommandTree.GetFirstSelected;
-     commandCB.Enabled := assigned(aNode);
-     fieldCB.Enabled := assigned(aNode);
+  aNode := CommandTree.GetFirstSelected;
 
-     ReplacePanel.Visible := commandCB.Enabled and (commandCB.ItemIndex = 0);
-     InsertPanel.Visible := commandCB.Enabled and (commandCB.ItemIndex = 1);
-     FromToPanel.Visible := commandCB.Enabled and (commandCB.ItemIndex in [2, 3]);
-     CutByPanel.Visible := commandCB.Enabled and (commandCB.ItemIndex in [4, 5]);
+  if assigned(aNode) then
+    CR := CommandTree.GetNodeData(aNode)
+  else
+    CR := nil;
 
-     if assigned(aNode) then
-     begin
-          CR := CommandTree.GetNodeData(aNode);
-          fieldCB.ItemIndex := GetFieldCbItemIndex(CR.Field);
-          replaceFindEdit.Text := CR.String1;
-          ReplaceWithEdit.Text := CR.String2;
-          FromEdit.Text := inttostr(CR.pos1);
-          ToEdit.Text := inttostr(CR.pos2);
-          InsertTextEdit.Text := CR.String1;
-          InsertAtPosEdit.Text := inttostr(CR.pos2);
-          CutByEdit.Text := inttostr(CR.pos1);
-          if CR.command = Command_InsertText then
-          begin
-               InsertRadio1.Checked := CR.Pos1 = 0;
-               InsertRadio2.Checked := CR.Pos1 = 1;
-               InsertRadio3.Checked := CR.Pos1 = 2;
-               InsertAtPosEdit.Enabled := InsertRadio3.Checked
-          end
-     end;
-     updatePreview
+  commandCB.Enabled := assigned(CR);
+  fieldCB.Enabled := assigned(CR);
+
+  ReplacePanel.Visible  := assigned(CR) and (CR.command in [Command_replace]);
+  InsertPanel.Visible   := assigned(CR) and (CR.command in [Command_InsertText]);
+  FromCountPanel.Visible:= assigned(CR) and (CR.command in [Command_Substring, Command_Delete]);
+  CutByPanel.Visible    := assigned(CR) and (CR.command in [Command_cutLeft, Command_cutRight]);
+
+  if assigned(CR) then
+  begin
+    fieldCB.ItemIndex := GetFieldCbItemIndex(CR.Field);
+    replaceFindEdit.Text := CR.String1;
+    ReplaceWithEdit.Text := CR.String2;
+    FromEdit.Text := inttostr(CR.Pos);
+    CountEdit.Text := inttostr(CR.Count);
+    InsertTextEdit.Text := CR.String1;
+    InsertAtPosEdit.Text := inttostr(CR.Pos);
+    CutByEdit.Text := inttostr(CR.Pos);
+    if CR.command = Command_InsertText then
+    begin
+      InsertRadio1.Checked := CR.argument = caInsertText_Append;
+      InsertRadio2.Checked := CR.argument = caInsertText_Prefix;
+      InsertRadio3.Checked := CR.argument = caInsertText_AtPos;
+      InsertAtPosEdit.Enabled := InsertRadio3.Checked
+    end
+    else if CR.command = Command_Replace then
+    begin
+      chkReplaceCS.Checked := CR.argument = caReplace_CS;
+    end
+  end;
+  updatePreview
 end;
 
 procedure TTagCutter.CommandTreeGetText(Sender: TBaseVirtualTree;
@@ -383,14 +380,14 @@ begin
     CellText := GetText(TXT_CutterReplace, [CR.String1, CR.String2, FieldText]) else
  if CR.command = Command_InsertText then
     CellText := GetText(TXT_CutterInsertText, [CR.String2, FieldText]) else
- if CR.command = Command_Cut then
-    CellText := GetText(TXT_CutterCut, [inttostr(CR.pos1), FieldText]) else
+ if CR.command = Command_Delete then
+    CellText := GetText(TXT_CutterDelete, [inttostr(CR.Pos), FieldText]) else
  if CR.command = Command_CutLeft then
-    CellText := GetText(TXT_CutterCutLeft, [inttostr(CR.pos1), FieldText]) else
+    CellText := GetText(TXT_CutterCutLeft, [inttostr(CR.Pos), FieldText]) else
  if CR.command = Command_CutRight then
-    CellText := GetText(TXT_CutterCutRight, [inttostr(CR.pos1), FieldText]) else
- if CR.command = Command_Trim then
-    CellText := GetText(TXT_Trim, [inttostr(CR.pos1), inttostr(CR.pos2), FieldText])
+    CellText := GetText(TXT_CutterCutRight, [inttostr(CR.Pos), FieldText]) else
+ if CR.command = Command_Substring then
+    CellText := GetText(TXT_Substring, [inttostr(CR.Pos), inttostr(CR.Count), FieldText])
 end;
 
 
@@ -400,9 +397,9 @@ var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) then
+  if InsertRadio1.Checked and assigned(cr) then
 	begin
-  	cr.Pos1 := 0;
+  	cr.argument := caInsertText_Prefix;
 	  updatePreview
   end
 end;
@@ -412,9 +409,9 @@ var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) then
+  if InsertRadio2.Checked and assigned(cr) then
 	begin
-  	cr.Pos1 := 1;
+  	cr.argument := caInsertText_Append;
 	  updatePreview
   end
 end;
@@ -424,9 +421,9 @@ var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) then
+  if InsertRadio3.Checked and assigned(cr) then
 	begin
-  	cr.Pos1 :=2;
+  	cr.argument := caInsertText_AtPos;
     InsertAtPosEdit.Enabled := true;
     updatePreview
   end
@@ -449,9 +446,9 @@ var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) and InsertAtPosEdit.Modified and Q_IsInteger(InsertAtPosEdit.Text) then
+  if assigned(cr) and InsertAtPosEdit.Modified and IsInteger(InsertAtPosEdit.Text) then
 	begin
-  	cr.Pos2 := StrToInt(InsertAtPosEdit.Text);
+  	cr.Pos := StrToInt(InsertAtPosEdit.Text);
 	  updatePreview
   end
 end;
@@ -461,9 +458,9 @@ var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) and CutByEdit.Modified and Q_IsInteger(CutByEdit.Text) then
+  if assigned(cr) and CutByEdit.Modified and IsInteger(CutByEdit.Text) then
 	begin
-  	cr.Pos1 := StrToInt(CutbyEdit.Text);
+  	cr.Count := StrToInt(CutbyEdit.Text);
 	  updatePreview
   end
 end;
@@ -473,21 +470,21 @@ var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) and FromEdit.Modified and Q_IsInteger(FromEdit.Text) then
+  if assigned(cr) and FromEdit.Modified and IsInteger(FromEdit.Text) then
 	begin
-  	cr.Pos1 := StrToInt(FromEdit.Text);
+  	cr.Pos := StrToInt(FromEdit.Text);
 	  updatePreview
   end
 end;
 
-procedure TTagCutter.ToEditChange(Sender: TObject);
+procedure TTagCutter.CountEditChange(Sender: TObject);
 var
 	cr: PCommandRec;
 begin
 	cr := GetCR;
-  if assigned(cr) and ToEdit.Modified and Q_IsInteger(ToEdit.Text) then
+  if assigned(cr) and CountEdit.Modified and IsInteger(CountEdit.Text) then
 	begin
-  	cr.Pos2 := StrToInt(ToEdit.Text);
+  	cr.Count := StrToInt(CountEdit.Text);
 	  updatePreview
   end
 end;
@@ -510,7 +507,7 @@ var
 begin
 	cr := GetCR;
   if assigned(cr) and replaceWithEdit.Modified then
-	begin                   
+	begin
   	cr.String2 := replaceWithEdit.Text;
 	  updatePreview
   end
@@ -551,8 +548,14 @@ begin
   if assigned(cr) then
 	begin
   	cr.command := TCommand(CommandCB.ItemIndex);
-    cr.Pos1 := 0;
-    cr.Pos2 := 0;
+
+    if cr.command = Command_replace then
+      cr.argument := caReplace_CS
+    else
+      cr.argument := caInsertText_Prefix;
+
+    cr.Pos := 1;
+    cr.Count := 1;
     cr.String1 := '';
     cr.String2 := '';
     ProjektCommand
@@ -612,7 +615,7 @@ begin
 
 				arr[fieldIndex].field := CR.Field;
 				arr[fieldIndex].value := ChangeText(MainFormInstance.GetFTextP(list.items[i], arr[fieldIndex].field), CR.field);
-				if Q_SameStr(arr[fieldIndex].value, MainFormInstance.GetFTextP(list.items[i], arr[fieldIndex].field)) then
+				if arr[fieldIndex].value = MainFormInstance.GetFTextP(list.items[i], arr[fieldIndex].field) then
 					setLength(arr, length(arr)-1)
 			end;
 			aNode := CommandTree.GetNext(aNode)
@@ -628,7 +631,7 @@ begin
 
   if length(errMsgTotal) > 0 then
   begin
-  	Q_CutLeft(errMsgTotal, 2);
+  	Delete(errMsgTotal, 1, 2);
   	MainFormInstance.Showmessagex(errMsgTotal)
   end;
 
@@ -824,6 +827,22 @@ begin
 	pref.PC.ActivePage := pref.TSid3Editor;
 	MainFormInstance.Generalconfiguration1Click(sender);
 	self.Show
+end;
+
+procedure TTagCutter.chkReplaceCSClick(Sender: TObject);
+var
+	cr: PCommandRec;
+begin
+  cr := GetCR;
+  if assigned(cr) then
+	begin
+    if chkReplaceCS.Checked then
+      cr.argument := caReplace_CS
+    else
+      cr.argument := caReplace_CI;
+      
+	  updatePreview
+  end
 end;
 
 end.

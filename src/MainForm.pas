@@ -7459,9 +7459,9 @@ Begin
                s := Id3v2.GetText(fiRecordingTime);
                Q_TrimInPlace(s)
           end;
-          if Q_IsInteger(s) then
+          if IsInteger(s) then
              year := strtoint(s)
-          else if assigned(Id3v1) and Q_IsInteger(Id3v1.Year) then
+          else if assigned(Id3v1) and IsInteger(Id3v1.Year) then
                year := strtoint(Id3v1.Year)
           else year := -1;
 

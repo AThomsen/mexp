@@ -553,7 +553,7 @@ TXT_SetYearTo										:integer=257;
 //TagCutter
      TXT_CutterReplace           :integer=1500;
      TXT_CutterInsertText        :integer=1501;
-     TXT_CutterCut               :integer=1502;
+     TXT_CutterDelete            :integer=1502;
      TXT_CutterCutLeft           :integer=1503;
      TXT_CutterCutRight          :integer=1504;
      TXT_CutterCommands          :integer=1505;
@@ -561,21 +561,21 @@ TXT_SetYearTo										:integer=257;
      TXT_CutterField             :integer=1507;
      TXT_CutterReplaceCmd        :integer=1508;
      TXT_CutterInsertCmd         :integer=1509;
-     TXT_CutterTrimCmd           :integer=1510;
-     TXT_CutterCutCmd            :integer=1511;
+     TXT_CutterSubstringCmd      :integer=1510;
+     TXT_CutterDeleteCmd         :integer=1511;
      TXT_CutterCutLeftCmd        :integer=1512;
      TXT_CutterCutRightCmd       :integer=1513;
      TXT_CutterInsertTextEdit    :integer=1514;
      TXT_CutterInsertBefore      :integer=1515;
      TXT_CutterAppend            :integer=1516;
 		 TXT_CutterInsertAtPos       :integer=1517;
-		 TXT_Trim										 :integer=1535;	
+		 TXT_Substring							 :integer=1535;
 
      TXT_CutterCutLabel          :integer=1518;
      TXT_CutterCharacters        :integer=1519;
 
      TXT_CutterFromLabel         :integer=1520;
-     TXT_CutterToLabel           :integer=1521;
+     TXT_CutterCountLabel        :integer=1532;
 
      TXT_CutterReplaceLabel      :integer=1522;
      TXT_CutterWithLabel         :integer=1523;

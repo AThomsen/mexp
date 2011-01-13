@@ -1,6 +1,6 @@
 object MainForm: TMainForm
   Left = 679
-  Top = 125
+  Top = 115
   Cursor = crArrow
   HorzScrollBar.Visible = False
   VertScrollBar.Visible = False

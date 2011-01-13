@@ -68,6 +68,7 @@ uses
 				Procedure DecTime(const Time: int64; var h, m, s, ms: Word; Const NoMsec:Boolean=false);
 				Function IntTimeToStr(const time:int64; TwoMinDigits, AlwaysShowHour:Boolean):String;
 				Function IntTimeToSec(const Time:int64):int64;
+        Function IsInteger(const s:String): boolean;
 
 //				Function SecToString(sec: Integer): String;
         Function NearestDiv(Number:Integer; By:Integer) :Integer;
@@ -1296,6 +1297,14 @@ end;
 Function IntTimeToSec(const Time:int64):int64;
 begin
 	result := round(time / 1000)
+end;
+
+Function IsInteger(const s:String): boolean;
+var
+  E, i: Integer;
+begin
+  Val(S, i, E);
+  Result := E = 0;
 end;
 
 Function TheFix(const s:String):String;

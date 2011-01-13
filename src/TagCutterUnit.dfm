@@ -1,6 +1,6 @@
 object TagCutter: TTagCutter
-  Left = 539
-  Top = 121
+  Left = 573
+  Top = 90
   BorderStyle = bsSingle
   Caption = 'TagCutter'
   ClientHeight = 541
@@ -25,6 +25,49 @@ object TagCutter: TTagCutter
     Height = 113
     Caption = 'Command '
     TabOrder = 0
+    object FromCountPanel: TPanel
+      Left = 235
+      Top = 15
+      Width = 204
+      Height = 96
+      Align = alClient
+      BevelOuter = bvNone
+      TabOrder = 1
+      object lblFrom: TLabel
+        Left = 18
+        Top = 20
+        Width = 23
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'From'
+      end
+      object lblCount: TLabel
+        Left = 13
+        Top = 52
+        Width = 28
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Count'
+      end
+      object FromEdit: TEdit
+        Left = 48
+        Top = 16
+        Width = 41
+        Height = 21
+        TabOrder = 0
+        Text = '0'
+        OnChange = FromEditChange
+      end
+      object CountEdit: TEdit
+        Left = 48
+        Top = 48
+        Width = 41
+        Height = 21
+        TabOrder = 1
+        Text = '0'
+        OnChange = CountEditChange
+      end
+    end
     object CutByPanel: TPanel
       Left = 235
       Top = 15
@@ -134,7 +177,7 @@ object TagCutter: TTagCutter
       TabOrder = 0
       object Label3: TLabel
         Left = 16
-        Top = 20
+        Top = 9
         Width = 40
         Height = 13
         Alignment = taRightJustify
@@ -142,7 +185,7 @@ object TagCutter: TTagCutter
       end
       object Label4: TLabel
         Left = 32
-        Top = 52
+        Top = 41
         Width = 22
         Height = 13
         Alignment = taRightJustify
@@ -150,7 +193,7 @@ object TagCutter: TTagCutter
       end
       object replaceFindEdit: TEdit
         Left = 64
-        Top = 16
+        Top = 5
         Width = 121
         Height = 21
         TabOrder = 0
@@ -158,54 +201,20 @@ object TagCutter: TTagCutter
       end
       object ReplaceWithEdit: TEdit
         Left = 64
-        Top = 48
+        Top = 37
         Width = 121
         Height = 21
         TabOrder = 1
         OnChange = ReplaceWithEditChange
       end
-    end
-    object FromToPanel: TPanel
-      Left = 235
-      Top = 15
-      Width = 204
-      Height = 96
-      Align = alClient
-      BevelOuter = bvNone
-      TabOrder = 1
-      object Label5: TLabel
-        Left = 18
-        Top = 20
-        Width = 23
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'From'
-      end
-      object Label6: TLabel
-        Left = 28
-        Top = 52
-        Width = 13
-        Height = 13
-        Alignment = taRightJustify
-        Caption = 'To'
-      end
-      object FromEdit: TEdit
-        Left = 48
-        Top = 16
-        Width = 41
-        Height = 21
-        TabOrder = 0
-        Text = '0'
-        OnChange = FromEditChange
-      end
-      object ToEdit: TEdit
-        Left = 48
-        Top = 48
-        Width = 41
-        Height = 21
-        TabOrder = 1
-        Text = '0'
-        OnChange = ToEditChange
+      object chkReplaceCS: TCheckBox
+        Left = 64
+        Top = 61
+        Width = 97
+        Height = 17
+        Caption = 'Case-sensitive'
+        TabOrder = 2
+        OnClick = chkReplaceCSClick
       end
     end
     object Panel3: TPanel
@@ -237,6 +246,7 @@ object TagCutter: TTagCutter
         Top = 40
         Width = 145
         Height = 21
+        Style = csDropDownList
         ItemHeight = 13
         TabOrder = 0
         OnChange = commandCBChange
@@ -246,6 +256,7 @@ object TagCutter: TTagCutter
         Top = 4
         Width = 145
         Height = 21
+        Style = csDropDownList
         ItemHeight = 13
         TabOrder = 1
         OnChange = FieldCBChange
@@ -399,8 +410,6 @@ object TagCutter: TTagCutter
       Width = 437
       Height = 14
       Align = alBottom
-      Min = 0
-      Max = 100
       TabOrder = 1
     end
     object Button2: TButton

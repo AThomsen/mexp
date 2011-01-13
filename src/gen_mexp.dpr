@@ -3,8 +3,8 @@
 library gen_mexp;
 
 {%ToDo 'gen_mexp.todo'}
-{%File 'MEXP\Languages\english.lan'}
-{%File 'MEXP\Languages\english.mnu'}
+{%File 'Languages\english.lan'}
+{%File 'Languages\english.mnu'}
 {%ToDo 'mexp.todo'}
 {%File 'readme.txt'}
 
