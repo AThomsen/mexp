@@ -4319,7 +4319,7 @@ begin
     fiMood, { [TMOO] Mood }
     fiProducedNotice, { [TPRO] Produced notice }
     fiAlbumSortOrder, { [TSOA] Album sort order }
-    fiPerformerSortOrder, { [TSOP] Performer sort order }
+//    fiPerformerSortOrder, { [TSOP] Performer sort order }   { TSOP is actually not supported in 2.3 but we included it anyway in mexp as it's widely used. }
     fiTitleSortOrder, { [TSOT] Title sort order }
     fiSetSubTitle: { [TSST] Set subtitle }
       Result := AVersion = ive2_4;

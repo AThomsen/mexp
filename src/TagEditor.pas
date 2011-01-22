@@ -40,7 +40,7 @@ uses
   MpegPlus, OggVorbis, ApeTag, WMAfile, Monkey, WavFile,
   MyId3v2Base, JvID3v2Types,
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdHTTP, MEXPtypes,
-  JvCombobox, Variants, JvExStdCtrls;
+  JvCombobox, JvExStdCtrls;
 
 const
 	tagDB = 10;
@@ -53,10 +53,18 @@ const
   tagMAX = tagOgg;
 
 type
-	TComponentArray = array of TComponent;
 
-type
-	TStringArray = array of String;
+TComponentArray = array of TComponent;
+
+
+TStringArray = array of String;
+
+
+TOtherFieldValue = Record
+    FieldName: string;
+    Description: string;
+    Value: string
+end;
 
 TUndoType = (
           UTstring,
@@ -822,9 +830,7 @@ PgroupCheckRec = ^TgroupCheckRec;
 
 TTagFieldRec = Record
   gray: Boolean;
-  fieldName: string;
-  description: string;
-  value: String;
+  Value: TOtherFieldValue;
 end;
 PTagFieldRec = ^TTagFieldRec;
 
@@ -1723,14 +1729,14 @@ begin
     while aNode <> nil do
     begin
       ct := tree.GetNodeData(aNode);
-      if Q_SameText(ct.fieldName, uc.arr[i].FieldName) and Q_SameText(ct.Description, uc.arr[i].Description) then
+      if Q_SameText(ct.Value.fieldName, uc.arr[i].Value.FieldName) and Q_SameText(ct.value.Description, uc.arr[i].Value.Description) then
       begin
       	found := true;
         setUnGrayed[aNode.Index] := true;
-        if not Q_SameStr(ct.value, uc.arr[i].value) then
+        if not Q_SameStr(ct.Value.value, uc.arr[i].Value.value) then
         begin
           ct.gray := true;
-          ct.value := ''
+          ct.Value.value := ''
         end;
       end;
       aNode := tree.GetNext(aNode)
@@ -1742,9 +1748,9 @@ begin
       tree.ReinitNode(aNode, false);
       ct := tree.GetNodeData(aNode);
       ct.gray := not firstRun;
-      ct.fieldName := uc.arr[i].fieldName;
-      ct.description := uc.arr[i].description;
-			if not ct.Gray then ct.value := uc.arr[i].value;
+      ct.Value.fieldName := uc.arr[i].Value.fieldName;
+      ct.Value.description := uc.arr[i].Value.description;
+			if not ct.Gray then ct.Value.value := uc.arr[i].Value.value;
       SetLength(setUnGrayed, tree.RootNodeCount);
       if firstRun then
       	setUnGrayed[length(setUnGrayed)-1] := true
@@ -1761,7 +1767,7 @@ begin
       	aNode := tree.GetNext(aNode);
       ct := tree.GetNodeData(aNode);
       ct.gray := True;
-      ct.Value := ''
+      ct.Value.Value := ''
     end
   end
 end;
@@ -1940,6 +1946,7 @@ begin
 end;
 
 procedure TEditor.FillInValues(Thread:TBMDExecuteThread; Pr:Pointer; pSR:Pointer; firstRun:boolean; updateStats:boolean=true; useFileWriteBeginEnd: Boolean = true);
+
 function FindLanguage(s:String):integer;
 var      x:integer;
 begin
@@ -1952,27 +1959,7 @@ begin
       	Result := x
 end;
 
-{function FindNextV2Frame(name:string; Iv2:Tid3v2tagEx; Start:integer):integer;
-var      i:integer;
-begin
-	result := -1;
-	for i:=Start to Iv2.Frames.Count do
-	begin
-		if Q_SameText(Iv2.Frames.getFrameID(i), name) then
-		begin
-			result := i;
-			break
-		end
-	end
-end;
-
-function FindV2Frame(name:string; Iv2:Tid3v2tagEx):integer;
-begin
-		 result := FindNextV2Frame(name, iv2, 1)
-end;   }
-
-procedure FillInValue(target:TComponent; const s:Variant; SR: PstatRec);
-function createStringUndo(target:TComponent; s:String):pointer;
+function CreateStringUndo(target:TComponent; s:String):pointer;
 var      UndoRec : PundoRec;
          undoString : PundoString;
 begin
@@ -1989,265 +1976,328 @@ begin
      result := undoRec
 end;
 
-var
-	i, x:integer;
-  cbs : TcheckBoxState;
-  undoGenres : PundoGenres;
-  UndoRec : PundoRec;
-  undoCheckState : PundoChecked;
-  undoComments : PundoComments;
-  undoRoles : PundoRoles;
-  undoInteger : PundoInteger;
-  undoGroups : PundoGroups;
-  undoCustomFields: PundoCustomFields;
-  undoTagFields: PundoTagFields;
-  Iarr: array of integer;
-  Sarr: array of string;
-  Str:String;
-  sDblArr: array of array of string;
+procedure FillInValue(target: TEdit; const text: string; SR: PstatRec); overload;
 begin
-	if target is TEdit then
-     begin
-          Str := s;
-          setLength(SR.values, length(SR.values)+1);
-          SR.values[length(SR.values)-1] := createStringUndo(target, str)
-     end else
-		 if target is TJvComboBox then
-		 begin
-					if (VarType(s) = varString) or (VarType(s) = varOleStr) then
-					begin
-							 Str := trim(s);
-							 setLength(SR.values, length(SR.values)+1);
-							 SR.values[length(SR.values)-1] := createStringUndo(target, str)
-					end else
-					if VarType(s) = varInteger then  //itemIndex gemmes
-					begin
-							 i := s;
-
-               new(UndoRec);
-               UndoRec.UndoType := UTinteger;
-							 UndoRec.Obj := target;
-               UndoRec.OrigState := true;
-               UndoRec.Gray := false;
-
-               new(undoInteger);
-               UndoRec.p := undoInteger;
-               undoInteger.i := i;
-
-               setLength(SR.values, length(SR.values)+1);
-               SR.values[length(SR.values)-1] := undoRec
-          end
-     end else
-     if target is TCheckBox then
-		 begin
-          if VarType(s) = VarString then cbs := cbUnchecked else cbs := s;
-          new(UndoRec);
-          UndoRec.UndoType := UTchecked;
-					UndoRec.Obj := target;
-          UndoRec.OrigState := true;
-          UndoRec.Gray := false;
-
-          new(undoCheckstate);
-          UndoRec.p := undoCheckstate;
-          undoCheckstate.b := cbs;
-
-          setLength(SR.values, length(SR.values)+1);
-          SR.values[length(SR.values)-1] := undoRec
-     end else
-		if target = CustomFieldTree then	// s = array of String
-    begin
-    	if VarType(s) = varString then
-      	setLength(Sarr, 0)
-      else Sarr := s;
-
-      new(UndoRec);
-      UndoRec.UndoType := UTcustomFields;
-			UndoRec.Obj := target;
-      UndoRec.OrigState := true;
-      UndoRec.Gray := false;
-
-      new(undoCustomFields);
-      UndoRec.p := undoCustomFields;
-
-      SetLength(undoCustomFields.Arr, length(Sarr));
-      for i:=0 to length(Sarr)-1 do
-      begin
-      	undoCustomFields.Arr[i].FieldIndex := i;
-      	undoCustomFields.Arr[i].value := Sarr[i];
-        undoCustomFields.arr[i].gray := false
-      end;
-
-      setLength(SR.values, length(SR.values)+1);
-      SR.values[length(SR.values)-1] := undoRec
-    end
-    else
-    if target = Genre then       //Genre    s = array of Integer
-		begin
-					if VarType(s) = varString then
-						setLength(Iarr, 0)
-					else Iarr := s;
-
-          new(UndoRec);
-					UndoRec.UndoType := UTgenres;
-					UndoRec.Obj := target;
-          UndoRec.OrigState := true;
-          UndoRec.Gray := false;
-
-          new(undoGenres);
-          UndoRec.p := undoGenres;
-
-          undoGenres.cover := cbUnchecked;
-					undoGenres.remix := cbUnchecked;
-															//////
-				 {	setLength(undoGenres.arr, 1);
-					undoGenres.arr[0] := 'Pop';    }
-					setLength(undoGenres.arr, length(Iarr));
-					x := 0;
-					for i:=0 to length(Iarr)-1 do
-					begin
-							 if Q_sameText(genreList.strings[Iarr[i]], 'cover') then undoGenres.cover := cbChecked else
-							 if Q_sameText(genreList.strings[Iarr[i]], 'remix') then undoGenres.remix := cbChecked else
-							 begin
-								undoGenres.arr[x] := genreList.strings[Iarr[i]];
-								inc(x)
-							 end
-					end;
-					setLength(undoGenres.arr, x);
-					setLength(SR.values, length(SR.values)+1);
-					SR.values[length(SR.values)-1] := undoRec
-     end else
-     if target = TCON then          //TCON   s = array of Strings
-     begin
-          if VarType(s) = varString then setLength(Sarr, 0) else Sarr := s;
-
-          new(UndoRec);
-					UndoRec.UndoType := UTgenres;
-          UndoRec.Obj := target;
-          UndoRec.OrigState := true;
-          UndoRec.Gray := false;
-
-          new(undoGenres);
-          UndoRec.p := undoGenres;
-
-          undoGenres.cover := cbUnchecked;
-          undoGenres.remix := cbUnchecked;
-          setLength(undoGenres.arr, length(Sarr));
-          x := 0;
-          for i:=0 to length(Sarr)-1 do
-					begin
-							 if Q_sameText(Sarr[i], 'cover') then undoGenres.cover := cbChecked else
-               if Q_sameText(Sarr[i], 'remix') then undoGenres.remix := cbChecked else
-               begin
-										undoGenres.arr[x] := Sarr[i];
-                    inc(x)
-               end
-          end;
-          setLength(undoGenres.arr, x);
-
-					setLength(SR.values, length(SR.values)+1);
-          SR.values[length(SR.values)-1] := undoRec
-     end else
-     if target = CommTree then        //Comment  s = array of pointers
-     begin
-          new(UndoRec);
-          UndoRec.UndoType := UTcomments;
-          UndoRec.Obj := target;
-          UndoRec.OrigState := true;
-          UndoRec.Gray := false;
-
-          new(undoComments);
-          UndoRec.p := undoComments;
-
-          if VarType(s) = varString then setLength(Iarr, 0) else Iarr := s;
-          setLength(undoComments.arr, length(Iarr));
-          for i:=0 to length(Iarr)-1 do
-          	undoComments.arr[i] := (Ptr(Iarr[i]));
-
-          setLength(SR.values, length(SR.values)+1);
-          SR.values[length(SR.values)-1] := undoRec
-     end else
-     if (target = TMCL) or (target = TIPL) then  //musicians & involved people  s = array of pointers
-		 begin
-          new(UndoRec);
-          UndoRec.UndoType := UTroles;
-          UndoRec.Obj := target;
-          UndoRec.OrigState := true;
-          UndoRec.Gray := false;
-
-          new(undoRoles);
-          UndoRec.p := undoRoles;
-
-					if VarType(s) = varString then setLength(Iarr, 0) else Iarr := s;
-          setLength(undoRoles.arr, length(Iarr));
-          for i:=0 to length(Iarr)-1 do
-              undoRoles.arr[i] := (Ptr(Iarr[i]));
-
-          setLength(SR.values, length(SR.values)+1);
-          SR.values[length(SR.values)-1] := undoRec
-		 end else
-     if target = groupCheck then // s er array of int, 0=cbUnChecked, 1=cbChecked
-     begin
-					new(UndoRec);
-          UndoRec.UndoType := UTgroups;
-          UndoRec.Obj := target;
-          UndoRec.OrigState := true;
-          UndoRec.Gray := false;
-
-          new(undoGroups);
-          UndoRec.p := undoGroups;
-
-          if VarType(s) = varString then setLength(Iarr, 0) else Iarr := s;
-
-          setLength(undoGroups.arr, length(Iarr));
-          for i:=0 to length(Iarr)-1 do
-							if Iarr[i]=1 then undoGroups.arr[i] := cbChecked else undoGroups.arr[i] := cbUnchecked;
-
-					setLength(SR.values, length(SR.values)+1);
-          SR.values[length(SR.values)-1] := undoRec
-     end else
-     if IsOtherFieldsTree(target) then	//s is array of array of string
-     begin
-	     	new(UndoRec);
-        UndoRec.UndoType := UTtagFields;
-        UndoRec.Obj := target;
-        UndoRec.OrigState := true;
-        UndoRec.Gray := false;
-
-        new(undoTagFields);
-        UndoRec.p := undoTagFields;
-
-        if VarType(s) = varString then
-        	SetLength(sDblArr, 0)
-	      else
-					sDblArr := s;
-
-        setLength(undoTagFields.arr, length(sDblArr));
-        for i:=0 to length(sDblArr)-1 do
-        begin
-        	undoTagFields.arr[i].gray := false;
-          undoTagFields.arr[i].fieldName := sDblArr[i][0];
-          undoTagFields.arr[i].description := sDblArr[i][1];
-          undoTagFields.arr[i].value := sDblArr[i][2]
-        end;
-
-        setLength(SR.values, length(SR.values)+1);
-        SR.values[length(SR.values)-1] := undoRec
-     end;
-
-		 finalize(Iarr);
-     Iarr := nil;
-     finalize(Sarr);
-     Sarr := nil;
-     finalize(sDblArr);
-     sDblArr := nil;
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := createStringUndo(target, Trim(text))
 end;
 
-procedure FillDummyValues(const CList: TComponentList; SR: PStatRec);
+procedure FillInValue(target: TEdit; const value: integer; SR: PstatRec); overload;
+begin
+  FillInValue(target, IntToStr(value), SR);
+end;
+
+procedure FillInValue(target: TCustomListControl; const text: string; SR: PstatRec); overload;
+begin
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := createStringUndo(target, Trim(Text))
+end;
+
+procedure FillInValue(target: TCustomListControl; const index: integer; SR: PstatRec); overload;
+var
+  UndoRec : PundoRec;
+  undoInteger : PundoInteger;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTinteger;
+  UndoRec.Obj := target;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoInteger);
+  UndoRec.p := undoInteger;
+  undoInteger.i := index;
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInValue(target: TCheckBox; const state: TCheckBoxState; SR: PstatRec); overload;
+var
+  UndoRec : PundoRec;
+  undoCheckState : PundoChecked;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTchecked;
+  UndoRec.Obj := target;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoCheckstate);
+  UndoRec.p := undoCheckstate;
+  undoCheckstate.b := state;
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInCustomFieldValue(const values: array of string; SR: PstatRec);
+var
+  i: integer;
+  UndoRec : PundoRec;
+  undoCustomFields: PundoCustomFields;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTcustomFields;
+  UndoRec.Obj := CustomFieldTree;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoCustomFields);
+  UndoRec.p := undoCustomFields;
+
+  SetLength(undoCustomFields.Arr, length(values));
+  for i:=0 to Length(values)-1 do
+  begin
+    undoCustomFields.Arr[i].FieldIndex := i;
+    undoCustomFields.Arr[i].value := values[i];
+    undoCustomFields.arr[i].gray := false
+  end;
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInGenreValue(const values: array of integer; SR: PstatRec);
+var
+  i, arrIdx: integer;
+  UndoRec : PundoRec;
+  undoGenres : PundoGenres;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTgenres;
+  UndoRec.Obj := Genre;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoGenres);
+  UndoRec.p := undoGenres;
+
+  undoGenres.cover := cbUnchecked;
+  undoGenres.remix := cbUnchecked;
+
+  setLength(undoGenres.arr, length(values));
+  arrIdx := 0;
+  for i:=0 to length(values)-1 do
+  begin
+    if Q_sameText(genreList.strings[values[i]], 'cover') then undoGenres.cover := cbChecked else
+    if Q_sameText(genreList.strings[values[i]], 'remix') then undoGenres.remix := cbChecked else
+    begin
+      undoGenres.arr[arrIdx] := genreList.strings[values[i]];
+      inc(arrIdx)
+    end
+  end;
+  setLength(undoGenres.arr, arrIdx);
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInTCON(const values: array of string; SR: PstatRec);
+var
+  i, arrIdx: integer;
+  UndoRec : PundoRec;
+  undoGenres : PundoGenres;
+begin
+// TODO: can this be merged with FillInGenreValues ?
+  new(UndoRec);
+  UndoRec.UndoType := UTgenres;
+  UndoRec.Obj := TCON;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoGenres);
+  UndoRec.p := undoGenres;
+
+  undoGenres.cover := cbUnchecked;
+  undoGenres.remix := cbUnchecked;
+  setLength(undoGenres.arr, length(values));
+  arrIdx := 0;
+  for i:=0 to length(values)-1 do
+  begin
+    if Q_sameText(values[i], 'cover') then undoGenres.cover := cbChecked else
+    if Q_sameText(values[i], 'remix') then undoGenres.remix := cbChecked else
+    begin
+      undoGenres.arr[arrIdx] := values[i];
+      inc(arrIdx)
+    end
+  end;
+  setLength(undoGenres.arr, arrIdx);
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInCOMMTree(const values: array of pointer; SR: PstatRec);
+var
+  i: integer;
+  UndoRec : PundoRec;
+  undoComments : PundoComments;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTcomments;
+  UndoRec.Obj := CommTree;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoComments);
+  UndoRec.p := undoComments;
+
+  setLength(undoComments.arr, length(values));
+  for i:=0 to length(values)-1 do
+    undoComments.arr[i] := values[i];
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInRoleValues(target: TVirtualStringTree; const values: array of pointer; SR: PstatRec);
+var
+  i: integer;
+  UndoRec : PundoRec;
+  undoRoles : PundoRoles;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTroles;
+  UndoRec.Obj := target;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoRoles);
+  UndoRec.p := undoRoles;
+
+  setLength(undoRoles.arr, length(values));
+  for i:=0 to length(values)-1 do
+    undoRoles.arr[i] := values[i];
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInGroupValues(const values: array of boolean; SR: PstatRec);
+var
+  i: integer;
+  UndoRec : PundoRec;
+  undoGroups : PundoGroups;
+begin
+	new(UndoRec);
+  UndoRec.UndoType := UTgroups;
+  UndoRec.Obj := GroupCheck;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoGroups);
+  UndoRec.p := undoGroups;
+
+  setLength(undoGroups.arr, length(values));
+  for i:=0 to length(values)-1 do
+      if values[i] then undoGroups.arr[i] := cbChecked else undoGroups.arr[i] := cbUnchecked;
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillInOtherFields(target: TVirtualStringTree; const values: array of TOtherFieldValue; SR: PstatRec);
+var
+  i: integer;
+  UndoRec : PundoRec;
+  undoTagFields: PundoTagFields;
+begin
+  new(UndoRec);
+  UndoRec.UndoType := UTtagFields;
+  UndoRec.Obj := target;
+  UndoRec.OrigState := true;
+  UndoRec.Gray := false;
+
+  new(undoTagFields);
+  UndoRec.p := undoTagFields;
+
+  setLength(undoTagFields.arr, length(values));
+  for i:=0 to length(values)-1 do
+  begin
+    undoTagFields.arr[i].gray := false;
+    undoTagFields.arr[i].Value := values[i];
+  end;
+
+  setLength(SR.values, length(SR.values)+1);
+  SR.values[length(SR.values)-1] := undoRec
+end;
+
+procedure FillEmptyValue(c: TComponent; SR: PStatRec);
+var
+  emptyStringArray: array of string;
+  emptyIntArray: array of integer;
+  emptyPtrArray: array of pointer;
+  emptyBoolArray: array of boolean;
+  emptyOtherFieldArray: array of TOtherFieldValue;
+
+begin
+  emptyStringArray := nil;
+  emptyIntArray := nil;
+  emptyPtrArray := nil;
+  emptyBoolArray := nil;
+  emptyOtherFieldArray := nil;
+
+  if c is TEdit then
+  begin
+    FillInValue(TEdit(c), '', SR);
+  end
+  else
+  if c is TCustomListControl then
+  begin
+    FillInValue(TCustomListControl(c), '', SR)
+  end
+  else
+  if c is TCheckBox then
+  begin
+    FillInValue(TCheckBox(c), cbUnchecked, SR)
+  end
+  else
+  if c = CustomFieldTree then
+  begin
+    FillInCustomFieldValue(emptyStringArray, SR);
+  end
+  else
+  if c = Genre then
+  begin
+    FillInGenreValue(emptyIntArray, SR)
+  end
+  else
+  if c = TCON then
+  begin
+    FillInTCON(emptyStringArray, SR)
+  end
+  else
+  if c = CommTree then
+  begin
+    FillInCOMMTree(emptyPtrArray, SR)
+  end
+  else
+  if (c = TMCL) or (c = TIPL) then
+  begin
+    FillInRoleValues(TVirtualStringTree(c), emptyPtrArray, SR)
+  end
+  else
+  if c = GroupCheck then
+  begin
+    FillInGroupValues (emptyBoolArray, SR)
+  end
+  else
+  if IsOtherFieldsTree(c) then
+  begin
+    FillInOtherFields(TVirtualStringTree(c), emptyOtherFieldArray, SR)
+  end
+  else
+  begin
+    Assert(false, 'Unknown control')
+  end
+end;
+
+procedure FillEmptyValues(const CList: TComponentList; SR: PStatRec);
 var
 	i: Integer;
 begin
 	for i:=0 to CList.Count-1 do
-		FillInValue(CList.items[i], '', SR); //fylder op med dummy værdier
+    FillEmptyValue(CList[i], SR)
 end;
 
 function GetYear(dt: TDateTime): word;
@@ -2281,9 +2331,12 @@ var
   keyFound: array of Boolean;
   bt: Byte;
   i, x:integer;
+  boolArr: array of boolean;
   Iarr: array of integer;
   Sarr: array of String;
-  sDblArr: array of array of string;
+  ptrArr: array of pointer;
+  otherFieldArray: array of TOtherFieldValue;
+//  sDblArr: array of array of string;
   cbs : TcheckBoxState;
   FStr : TStream;
   commRec:PcommRec;
@@ -2302,8 +2355,8 @@ begin
   FillInValue(Comment, getFtext(r, fComment), SR);
   FillInValue(Track, getFtext(r, fTrack), SR);
   FillInValue(TotalTracks, GetFText(r, fTotalTracks), SR);
-  FillInValue(PartOfSet, integer(MainFormInstance.GetPartOfSet(r)), SR);
-  FillInValue(TotalParts, integer(MainFormInstance.GetTotalParts(r)), SR);
+  FillInValue(PartOfSet, IntToStr(MainFormInstance.GetPartOfSet(r)), SR);
+  FillInValue(TotalParts, IntToStr(MainFormInstance.GetTotalParts(r)), SR);
 
   if MainFormInstance.SameArtistAndArtistSortOrder(r) then
     FillInValue(ArtistSortOrder, '', SR)
@@ -2314,20 +2367,13 @@ begin
   SetLength(Sarr, FieldList.Count);
   for i:=0 to FieldList.Count-1 do
   	Sarr[i] := GetFText(r, FCustomField + i);
-  if length(Sarr) = 0 then
-  	FillInValue(CustomFieldTree, '', SR)
-  else
-  	FillInValue(CustomFieldTree, Sarr, SR);
-  Sarr := nil;
+	FillInCustomFieldValue(Sarr, SR);
 
   //genre
   setLength(Iarr, length(r.genre));
   for i:=0 to length(r.Genre)-1 do
     Iarr[i]:=r.Genre[i];
-  if length(Iarr) = 0 then
-    FillInValue(Genre, '', SR)
-  else FillInValue(Genre, Iarr, SR);
-  Iarr := nil;
+  FillInGenreValue(Iarr, SR);
 
   //compilation
   if rfCompilation in r.Flags then cbs := cbChecked else cbs := cbUnchecked;
@@ -2336,14 +2382,14 @@ begin
   CBcompilation.OnClick := SaveGroupsClick;
 
   //groups
-  setLength(Iarr, groupCheck.rootnodeCount);
+  setLength(boolArr, groupCheck.rootnodeCount);
   aNode := GroupCheck.GetFirst;
   while aNode <> nil do
   begin
-   if MainFormInstance.hasGroup(r.groups, PgroupCheckRec(GroupCheck.getNodeData(aNode)).index) then Iarr[aNode.index] := 1 else Iarr[aNode.index] := 0;
+   boolArr[aNode.Index] := MainFormInstance.hasGroup(r.groups, PgroupCheckRec(GroupCheck.getNodeData(aNode)).index);
    aNode := GroupCheck.getNext(aNode)
   end;
-  FillInValue(groupCheck, Iarr, SR);
+  FillInGroupValues(boolArr, SR);
   // EO database
 
   CF := GetFtext(R, fFilename);
@@ -2432,7 +2478,7 @@ begin
          FillInValue(Id3v1Track, IntToStr(FId3v1.Track), SR);
         if updateStats then AddToStat(Thread, SR, 'Id3v1 loaded');
       end
-      else FillDummyValues(v1Components, SR); //fylder op med dummy værdier
+      else FillEmptyValues(v1Components, SR); //fylder op med dummy værdier
 
       if SR.HasApe then
       begin
@@ -2448,7 +2494,7 @@ begin
         SetLength(keyFound, 0);
         SetLength(keyFound, 2);
 
-  			SetLength(sDblArr, 0);
+  			SetLength(otherFieldArray, 0);
         for i:=0 to FApe.AddList.Count-1 do
         begin
           key := FApe.GetAddListKeyName(TStream(FApe.AddList.Items[i]), value);
@@ -2465,22 +2511,21 @@ begin
           	KeyFound[1] := true;
           	bt := 0;
           	MainFormInstance.SetpartOfSetFromString(bt, value);
-          	FillInValue(ApePartOfSet, MainFormInstance.GetPartOfSet(bt), SR);
-            FillInValue(ApeTotalParts, MainFormInstance.GetTotalParts(bt), SR)
+          	FillInValue(ApePartOfSet, IntToStr(MainFormInstance.GetPartOfSet(bt)), SR);
+            FillInValue(ApeTotalParts, IntToStr(MainFormInstance.GetTotalParts(bt)), SR)
           end
           else
 
           if not Q_SameText(key, ApeOggGroupIdent) and not Q_SameText(key, ApeOggCompilationIdent) and not Q_SameText(key, ApeOggWmaRatingIdent) then
           begin
-          	SetLength(sDblArr, length(sDblArr)+1);
-            SetLength(sDblArr[length(sDblArr)-1], 3);
-            sDblArr[length(sDblArr)-1][0] := key;
-            sDblArr[length(sDblArr)-1][1] := '';
-            sDblArr[length(sDblArr)-1][2] := value
+          	SetLength(otherFieldArray, length(otherFieldArray)+1);
+            otherFieldArray[length(otherFieldArray)-1].FieldName := key;
+            otherFieldArray[length(otherFieldArray)-1].Description := '';
+            otherFieldArray[length(otherFieldArray)-1].Value := value
           end
         end;
 
-        if length(sDblArr)=0 then FillInValue(ApeOtherFields, '', SR) else FillInValue(ApeOtherFields, sDblArr, SR);
+        FillInOtherFields(ApeOtherFields, otherFieldArray, SR);
 
         if not KeyFound[0] then
         	FillInValue(ApeArtistSortOrder, '', SR);
@@ -2499,7 +2544,8 @@ begin
 
         if updateStats then AddToStat(Thread, SR, 'Ape-tag loaded')
       end
-      else FillDummyValues(ApeComponents, SR);
+      else
+        FillEmptyValues(ApeComponents, SR);
 
       if SR.HasWMA then
       begin
@@ -2518,7 +2564,7 @@ begin
         SetLength(keyFound, 0);
         SetLength(keyFound, 2);
 
-        SetLength(sDblArr, 0);
+        SetLength(otherFieldArray, 0);
         for i:=0 to FWMA.AddList.Count-1 do
         begin
           key := FWMA.GetAddListKeyName(TStream(FWMA.AddList.Items[i]), wsValue);
@@ -2542,15 +2588,14 @@ begin
 
           if not Q_SameText(key, WmaGroupIdent) and not Q_SameText(key, WmaCompilationIdent) and not Q_SameText(key, ApeOggWmaRatingIdent) then
           begin
-          	SetLength(sDblArr, length(sDblArr)+1);
-            SetLength(sDblArr[length(sDblArr)-1], 3);
-            sDblArr[length(sDblArr)-1][0] := key;
-            sDblArr[length(sDblArr)-1][1] := '';
-            sDblArr[length(sDblArr)-1][2] := wsValue
+          	SetLength(otherFieldArray, length(otherFieldArray)+1);
+            otherFieldArray[length(otherFieldArray)-1].FieldName := key;
+            otherFieldArray[length(otherFieldArray)-1].Description := '';
+            otherFieldArray[length(otherFieldArray)-1].Value := wsValue
           end
         end;
 
-        if length(sDblArr)=0 then FillInValue(WmaOtherFields, '', SR) else FillInValue(WmaOtherFields, sDblArr, SR);
+        FillInOtherFields(WmaOtherFields, otherFieldArray, SR);
 
         if not KeyFound[0] then
         	FillInValue(WMAArtistSortOrder, '', SR);
@@ -2569,7 +2614,7 @@ begin
         if updateStats then
         	AddToStat(Thread, SR, 'WMA-tag loaded')
       end
-      else FillDummyValues(WMAComponents, SR);
+      else FillEmptyValues(WMAComponents, SR);
 
       if SR.HasOgg then
       begin
@@ -2587,7 +2632,7 @@ begin
         SetLength(keyFound, 0);
         SetLength(keyFound, 2);
 
-        SetLength(sDblArr, 0);
+        SetLength(otherFieldArray, 0);
         for i:=0 to Fogg.AdditionalTags.Count-1 do
         begin
           key := Fogg.GetAddListKeyName(Fogg.AdditionalTags.Strings[i], value);
@@ -2610,15 +2655,14 @@ begin
           else
           if not Q_SameText(key, ApeOggGroupIdent) and not Q_SameText(key, ApeOggCompilationIdent) and not Q_SameText(key, ApeOggWmaRatingIdent) then
           begin
-          	SetLength(sDblArr, length(sDblArr)+1);
-            SetLength(sDblArr[length(sDblArr)-1], 3);
-            sDblArr[length(sDblArr)-1][0] := key;
-            sDblArr[length(sDblArr)-1][1] := '';
-            sDblArr[length(sDblArr)-1][2] := value
+          	SetLength(otherFieldArray, length(otherFieldArray)+1);
+            otherFieldArray[length(otherFieldArray)-1].FieldName := key;
+            otherFieldArray[length(otherFieldArray)-1].Description := '';
+            otherFieldArray[length(otherFieldArray)-1].Value := value
           end
         end;
 
-        if length(sDblArr)=0 then FillInValue(OggOtherFields, '', SR) else FillInValue(OggOtherFields, sDblArr, SR);
+        FillInOtherFields(OggOtherFields, otherFieldArray, SR);
 
         if not KeyFound[0] then
         	FillInValue(OggArtistSortOrder, '', SR);
@@ -2633,7 +2677,7 @@ begin
         end;
         if updateStats then AddToStat(Thread, SR, 'Ogg-tag loaded')
       end
-      else FillDummyValues(OggComponents, SR);
+      else FillEmptyValues(OggComponents, SR);
 
     if SR.HasV2 then
     begin
@@ -2787,34 +2831,28 @@ begin
             else
               Sarr[x] := GetGenreText (GenreToNiceGenre (id3LstFrame.List[x]));
           end;
-          if length(Sarr) = 0 then
-            FillInValue(TCON, '', SR)
-          else
-            FillInValue(TCON, Sarr, SR);
+          FillInTCON(Sarr, SR);
         end
         else
-          FillInValue(TCON, '', SR);
+          FillEmptyValue(TCON, SR);
 
         //Comments
-        setLength(Iarr, 0);
+        setLength(ptrArr, 0);
         id3Frame := nil;
         while Id3v2.FindNextFrame(fiComment, id3Frame) do
         begin
           id3CntFrame := TJvID3ContentFrame(id3Frame);
-          setLength(Iarr, length(Iarr)+1);
+          setLength(ptrArr, length(ptrArr)+1);
           new(commRec);
           FillChar(commRec^, SizeOf(commRec^), #0);
           commRec.Description := id3CntFrame.Description;
           commRec.Value := id3CntFrame.Text;
           commRec.Language := FindLanguage(id3CntFrame.language);
           commRec.Empty := false;
-          Iarr[length(Iarr)-1] := integer(commRec);
+          ptrArr[length(ptrArr)-1] := commRec;
         end;
-        if length(Iarr)=0 then
-          FillInValue(CommTree, '', SR)
-        else
-          FillInValue(CommTree, Iarr, SR);
-        setLength(Iarr, 0);
+        FillInCOMMTree(ptrArr, SR);
+        setLength(ptrArr, 0);
 
 
         //BPM
@@ -2864,49 +2902,40 @@ begin
         if Id3v2.FindFirstFrame(fiMusicianCreditList, id3Frame) then
         begin
           id3DblLstFrame := TJvID3DoubleListFrame(id3Frame);
-          setLength(Iarr, id3DblLstFrame.List.Count);
+          setLength(ptrArr, id3DblLstFrame.List.Count);
           for i:=0 to id3DblLstFrame.List.Count-1 do
           begin
              new(roleRec);
              roleRec.Empty := false;
              roleRec.Role := id3DblLstFrame.Names[i];
              roleRec.Name := id3DblLstFrame.Values[i];
-             Iarr[i] := integer(roleRec)
+             ptrArr[i] := roleRec
           end;
-
-          if length(Iarr)=0 then
-            FillInValue(TMCL, '', SR)
-          else
-            FillInValue(TMCL, Iarr, SR);
-
-          setLength(Iarr, 0)
+          FillInRoleValues(TMCL, ptrArr, SR);
+          setLength(ptrArr, 0)
         end
         else
-          FillInValue(TMCL, '', SR);
+          FillEmptyValue(TMCL, SR);
 
         //Involved People list. IPLS is v3, TIPL is v4
         if Id3v2.FindFirstFrame(fiInvolvedPeople, id3Frame) or Id3v2.FindFirstFrame(fiInvolvedPeople2, id3Frame) then
         begin
           id3DblLstFrame := TJvID3DoubleListFrame(id3Frame);
-          setLength(Iarr, id3DblLstFrame.List.Count);
+          setLength(ptrArr, id3DblLstFrame.List.Count);
           for i:=0 to id3DblLstFrame.List.Count-1 do
           begin
             new(roleRec);
             roleRec.Empty := false;
             roleRec.Role := id3DblLstFrame.Values[i];
             roleRec.Name := id3DblLstFrame.Names[i];
-            Iarr[i] := integer(roleRec)
+            ptrArr[i] := roleRec
           end;
-          
-          if length(Iarr)=0 then
-            FillInValue(TIPL, '', SR)
-          else
-            FillInValue(TIPL, Iarr, SR);
+          FillInRoleValues(TIPL, ptrArr, SR);
 
-          setLength(Iarr, 0)
+          setLength(ptrArr, 0)
         end
         else
-          FillInValue(TIPL, '', SR);
+          FillEmptyValue(TIPL, SR);
 
          //PrivateFrame
 
@@ -2919,7 +2948,7 @@ begin
         end;
 
         // Other fields
-        SetLength(sDblArr, 0);
+        SetLength(otherFieldArray, 0);
 				for i:=0 to id3v2.Frames.Count-1 do
         begin
           id3Frame := id3v2.Frames[i];
@@ -2927,31 +2956,27 @@ begin
          	if Q_SameTextL(s, 'T', 1) and not IsId3v2Control(s, self) and (id3Frame.FrameID <> fiRecordingTime) and
             ((id3Frame is TJvId3UserFrame) or (id3Frame is TJvId3CustomTextFrame)) then
           begin
-          	SetLength(sDblArr, length(sDblArr)+1);
-            SetLength(sDblArr[length(sDblArr)-1], 3);
-            sDblArr[length(sDblArr)-1][0] := s;
+          	SetLength(otherFieldArray, length(otherFieldArray)+1);
+            otherFieldArray[length(otherFieldArray)-1].FieldName := s;
             if Q_SameText(s, 'TXXX') then
             begin
-            	sDblArr[length(sDblArr)-1][1] :=  TJvId3UserFrame(id3v2.Frames[i]).Description;
-            	sDblArr[length(sDblArr)-1][2] :=  TJvId3UserFrame(id3v2.Frames[i]).Value;
+            	otherFieldArray[length(otherFieldArray)-1].Description :=  TJvId3UserFrame(id3v2.Frames[i]).Description;
+            	otherFieldArray[length(otherFieldArray)-1].Value :=  TJvId3UserFrame(id3v2.Frames[i]).Value;
             end
             else
             begin
-	            sDblArr[length(sDblArr)-1][1] :=  '';
-	            sDblArr[length(sDblArr)-1][2] := TJvId3CustomTextFrame(id3v2.Frames[i]).Text;
+	            otherFieldArray[length(otherFieldArray)-1].Description :=  '';
+	            otherFieldArray[length(otherFieldArray)-1].Value := TJvId3CustomTextFrame(id3v2.Frames[i]).Text;
             end
           end
         end;
-        if length(sDblArr)=0 then
-          FillInValue(Id3v2OtherFields, '', SR)
-        else
-          FillInValue(Id3v2OtherFields, sDblArr, SR);
+        FillInOtherFields(Id3v2OtherFields, otherFieldArray, SR);
 
 
         if updateStats then AddToStat(Thread, SR, 'Id3v2 loaded');
       end
       else //thisHasV2Tag
-        FillDummyValues(v2Components, SR);
+        FillEmptyValues(v2Components, SR);
 
       if not multipleFiles then
         LoadLyrics3(Fstr, SR);
@@ -2978,11 +3003,11 @@ begin
     SR.HasLyrics3V2 := false;
     for i:=tagId3v1 to tagMAX do
       SR.HasTagLyrics[i] := false;
-    FillDummyValues(v1Components, SR);
-    FillDummyValues(v2Components, SR);
-    FillDummyValues(apeComponents, SR);
-    FillDummyValues(wmaComponents, SR);
-    FillDummyValues(oggComponents, SR);
+    FillEmptyValues(v1Components, SR);
+    FillEmptyValues(v2Components, SR);
+    FillEmptyValues(apeComponents, SR);
+    FillEmptyValues(wmaComponents, SR);
+    FillEmptyValues(oggComponents, SR);
     if updateStats then
       AddToStat(Thread, SR, 'Couldn''t load file')
   end
@@ -2998,11 +3023,11 @@ begin
     SR.HasLyrics3V2 := false;
       for i:=tagId3v1 to tagMAX do
 		SR.HasTagLyrics[i] := false;
-    FillDummyValues(v1Components, SR);
-    FillDummyValues(v2Components, SR);
-    FillDummyValues(apeComponents, SR);
-    FillDummyValues(wmaComponents, SR);
-    FillDummyValues(oggComponents, SR);
+    FillEmptyValues(v1Components, SR);
+    FillEmptyValues(v2Components, SR);
+    FillEmptyValues(apeComponents, SR);
+    FillEmptyValues(wmaComponents, SR);
+    FillEmptyValues(oggComponents, SR);
 
     if updateStats then
       AddToStat(Thread, SR, 'File not found')
@@ -3022,7 +3047,6 @@ var     sNode : PVirtualNode;
 				ProForm : TInputbox2;
 				cancelled : boolean;
 				i:integer;
-        th: TThread;
 begin
   TagLoaded := true; //To Prevent (re)loading on show
   //Groups BEGIN
@@ -3459,7 +3483,7 @@ begin
           	result := length(PUndoTagFields(UR1.p).arr) = length(PUndoTagFields(UR2.p).arr);
             if result then
 	            for i:=0 to length(PUndoTagFields(UR1.p).arr) - 1 do
-	            	result := result and Q_SameStr(PUndoTagFields(UR1.p).arr[i].value, PUndoTagFields(UR2.p).arr[i].value) and (PUndoTagFields(UR1.p).arr[i].gray = PUndoTagFields(UR2.p).arr[i].gray)
+	            	result := result and Q_SameStr(PUndoTagFields(UR1.p).arr[i].Value.Value, PUndoTagFields(UR2.p).arr[i].Value.value) and (PUndoTagFields(UR1.p).arr[i].gray = PUndoTagFields(UR2.p).arr[i].gray)
           end
 					{
 					if UR1.Obj Is TVirtualStringTree then
@@ -3755,10 +3779,10 @@ begin
     while aNode <> nil do
     begin
     	tf := aTree.GetNodeData(aNode);
-      undoTagFields.arr[aNode.index].FieldName := tf.FieldName;
+      undoTagFields.arr[aNode.index].Value.FieldName := tf.Value.FieldName;
       undoTagFields.arr[aNode.index].gray := tf.gray;
-      undoTagFields.arr[aNode.index].value := tf.value;
-      undoTagFields.arr[aNode.index].description := tf.description;
+      undoTagFields.arr[aNode.index].value.Value := tf.Value.value;
+      undoTagFields.arr[aNode.index].value.Description := tf.Value.description;
 
       aNode := aTree.GetNext(aNode)
     end;
@@ -4130,10 +4154,8 @@ begin
       while aNode <> nil do
       begin
        	tf := aTree.getNodeData(aNode);
-       	tf.fieldName := undoTagFields.arr[aNode.index].fieldName;
-       	tf.value := undoTagFields.arr[aNode.index].value;
-        tf.gray := undoTagFields.arr[aNode.index].gray;
-        tf.description := undoTagFields.arr[aNode.index].description;
+       	tf.Value := undoTagFields.arr[aNode.index].Value;
+        tf.Gray := undoTagFields.arr[aNode.index].Gray;
 
        	aNode := aTree.GetNext(aNode)
       end;
@@ -4409,7 +4431,7 @@ Procedure TEditor.FieldChanged(Sender: TObject; skipGrayOut:boolean=false);
 procedure SyncCopy(Source: TControl; undoCreated: Boolean);    //kopierer værdi fra database til de tag-værdier der måtte være muligt at skrive til
 var
 	CB: TCheckBox;
-	tagIdx, j, i: Integer;
+	tagIdx, j: Integer;
 	targetName: TStringArray;
   s: String;
 	target: TComponentArray;
@@ -4557,12 +4579,12 @@ begin
               while bNode <> nil do
               begin
                 trRec := aTree.GetNodeData(bNode);
-                if Q_SameText(trRec.fieldName, tagFieldName) and ((tagIdx <> tagId3v2) or Q_SameText(trRec.description, cf.id3v2Description)) then
+                if Q_SameText(trRec.Value.fieldName, tagFieldName) and ((tagIdx <> tagId3v2) or Q_SameText(trRec.Value.description, cf.id3v2Description)) then
                 begin
                   found := true;
-                  if trRec.gray or not Q_SameStr(trRec.value, cfRec.value) then
+                  if trRec.gray or not Q_SameStr(trRec.Value.value, cfRec.value) then
                   begin
-                    trRec.value := cfRec.value;
+                    trRec.value.Value := cfRec.value;
                     trRec.gray := false;
                     FieldChanged(aTree)
                   end
@@ -4574,12 +4596,12 @@ begin
                 bNode := aTree.AddChild(nil);
                 trRec := aTree.GetNodeData(bNode);
                 trRec.gray := false;
-                trRec.fieldName := tagFieldName;
-                trRec.value := cfRec.value;
+                trRec.Value.fieldName := tagFieldName;
+                trRec.Value.value := cfRec.value;
                 if (tagIdx = tagId3v2) and Q_SameText(cf.id3v2FieldName, 'TXXX') then
-                  trRec.description := cf.id3v2Description
+                  trRec.Value.Description := cf.id3v2Description
                 else
-                  trRec.description := '';
+                  trRec.Value.Description := '';
 
                 FieldChanged(aTree)
               end
@@ -5864,20 +5886,20 @@ begin
         while aNode <> nil do
         begin
           tfRec := id3v2OtherFields.GetNodeData(aNode);
-          if Q_SameText(s, tfRec.fieldName) and Q_SameText(s1, tfRec.description) then
+          if Q_SameText(s, tfRec.Value.FieldName) and Q_SameText(s1, tfRec.Value.Description) then
           begin
             bArr1[i] := true;
             bArr2[aNode.Index] := true;
-            if not tfRec.gray and not Q_SameStr(tfRec.value, s2) then
+            if not tfRec.gray and not Q_SameStr(tfRec.Value.Value, s2) then
             begin
-              if Q_SameText(tfRec.fieldName, 'TXXX') then
+              if Q_SameText(tfRec.Value.FieldName, 'TXXX') then
               begin
                 userTextFrame := TJvID3UserFrame (id3v2.Frames[j]);
-                userTextFrame.Description := tfRec.Description;
-                userTextFrame.Value := tfRec.value
+                userTextFrame.Description := tfRec.Value.Description;
+                userTextFrame.Value := tfRec.Value.Value
               end
               else
-                TJvId3CustomTextFrame (id3v2.Frames[j]).Text := tfrec.value
+                TJvId3CustomTextFrame (id3v2.Frames[j]).Text := tfrec.Value.Value
             end
           end;
           aNode := id3v2OtherFields.GetNext(aNode)
@@ -5898,15 +5920,15 @@ begin
         if not bArr2[aNode.Index] then
         begin
           tfRec := id3v2OtherFields.GetNodeData(aNode);
-          if Q_SameText(tfRec.fieldName, 'TXXX') then
+          if Q_SameText(tfRec.Value.FieldName, 'TXXX') then
           begin
             userTextFrame := TJvID3UserFrame (id3v2.AddFrame (fiUserText));
-            userTextFrame.Description := tfRec.description;
-            userTextFrame.Value := tfRec.value
+            userTextFrame.Description := tfRec.Value.Description;
+            userTextFrame.Value := tfRec.Value.Value
           end
           else
           begin
-            TJvId3CustomTextFrame (id3v2.AddFrame (ID3_StringToFrameID(tfRec.FieldName))).Text := tfRec.value;
+            TJvId3CustomTextFrame (id3v2.AddFrame (ID3_StringToFrameID(tfRec.Value.FieldName))).Text := tfRec.Value.Value;
           end
         end;
         aNode := id3v2OtherFields.GetNext(aNode)
@@ -6207,7 +6229,7 @@ begin
 
           for j:=0 to Length(utf.arr)-1 do
           begin
-            if Q_SameText(utf.arr[j].fieldName, 'TXXX') and Q_SameText(cf.id3v2Description, utf.arr[j].description) then
+            if Q_SameText(utf.arr[j].Value.FieldName, 'TXXX') and Q_SameText(cf.id3v2Description, utf.arr[j].Value.Description) then
               x := j;
           end;
 
@@ -6218,7 +6240,7 @@ begin
           end
           else
           begin
-            if (ucf.arr[i].gray <> utf.arr[x].Gray) or (not utf.arr[x].Gray and not Q_SameStr(ucf.arr[i].value, utf.arr[x].Value)) then
+            if (ucf.arr[i].gray <> utf.arr[x].Gray) or (not utf.arr[x].Gray and not Q_SameStr(ucf.arr[i].Value, utf.arr[x].Value.Value)) then
               result := false
           end
         end
@@ -8390,12 +8412,12 @@ begin            // SaveThreadExecute
               while aNode <> nil do
               begin
               	tfRec := apeOtherFields.GetNodeData(aNode);
-                if Q_SameText(s, tfRec.fieldName) then
+                if Q_SameText(s, tfRec.Value.fieldName) then
                 begin
                 	bArr1[i] := true;
                   bArr2[aNode.Index] := true;
-                	if not tfRec.gray and not Q_SameStr(tfRec.value, value) then
-                  	fape.SetAddListValue(i, tfRec.Value)
+                	if not tfRec.gray and not Q_SameStr(tfRec.Value.Value, value) then
+                  	fape.SetAddListValue(i, tfRec.Value.Value)
                 end;
                 aNode := apeOtherFields.GetNext(aNode)
 	            end
@@ -8413,7 +8435,7 @@ begin            // SaveThreadExecute
             if not bArr2[aNode.Index] then
             begin
               tfRec := apeOtherFields.GetNodeData(aNode);
-              fape.AddKeyToAddList(tfRec.FieldName, tfRec.Value)
+              fape.AddKeyToAddList(tfRec.Value.FieldName, tfRec.Value.Value)
             end;
             aNode := apeOtherFields.GetNext(aNode)
           end
@@ -8626,12 +8648,12 @@ begin            // SaveThreadExecute
               while aNode <> nil do
               begin
               	tfRec := WmaOtherFields.GetNodeData(aNode);
-                if Q_SameText(s, tfRec.fieldName) then
+                if Q_SameText(s, tfRec.Value.FieldName) then
                 begin
                 	bArr1[i] := true;
                   bArr2[aNode.Index] := true;
-                	if not tfRec.gray and not Q_SameStr(tfRec.value, wsValue) then
-                  	fwma.SetAddListValue(i, tfRec.Value)
+                	if not tfRec.gray and not Q_SameStr(tfRec.Value.Value, wsValue) then
+                  	fwma.SetAddListValue(i, tfRec.Value.Value)
                 end;
                 aNode := WmaOtherFields.GetNext(aNode)
 	            end
@@ -8649,7 +8671,7 @@ begin            // SaveThreadExecute
             if not bArr2[aNode.Index] then
             begin
               tfRec := WmaOtherFields.GetNodeData(aNode);
-              fWma.AddKeyToAddList(tfRec.FieldName, tfRec.Value)
+              fWma.AddKeyToAddList(tfRec.Value.FieldName, tfRec.Value.Value)
             end;
             aNode := WmaOtherFields.GetNext(aNode)
           end
@@ -8830,12 +8852,12 @@ begin            // SaveThreadExecute
               while aNode <> nil do
               begin
               	tfRec := OggOtherFields.GetNodeData(aNode);
-                if Q_SameText(s, tfRec.fieldName) then
+                if Q_SameText(s, tfRec.Value.FieldName) then
                 begin
                 	bArr1[i] := true;
                   bArr2[aNode.Index] := true;
-                	if not tfRec.gray and not Q_SameStr(tfRec.value, value) then
-                  	fOgg.AdditionalTags.Strings[i] := ansiUpperCase(s) + '=' + tfRec.value
+                	if not tfRec.gray and not Q_SameStr(tfRec.Value.Value, value) then
+                  	fOgg.AdditionalTags.Strings[i] := ansiUpperCase(s) + '=' + tfRec.Value.value
                 end;
                 aNode := OggOtherFields.GetNext(aNode)
 	            end
@@ -8853,7 +8875,7 @@ begin            // SaveThreadExecute
             if not bArr2[aNode.Index] then
             begin
               tfRec := OggOtherFields.GetNodeData(aNode);
-              fOgg.AddKeyToAddList(tfRec.FieldName, tfRec.Value)
+              fOgg.AddKeyToAddList(tfRec.Value.FieldName, tfRec.Value.Value)
             end;
             aNode := OggOtherFields.GetNext(aNode)
           end
@@ -9194,8 +9216,8 @@ begin
 	tr.Gray := false;
 
   case column of
-  	0: tr.fieldName := newText;
-    1: tr.value := newText
+  	0: tr.Value.FieldName := newText;
+    1: tr.Value.Value := newText
   end
 end;
 
@@ -9215,9 +9237,9 @@ procedure TEditor.OggOtherFieldsGetText(Sender: TBaseVirtualTree;
   var CellText: WideString);
 begin
 	if Column = 0 then
-  	CellText := PTagFieldRec(Sender.GetNodeData(Node)).FieldName
+  	CellText := PTagFieldRec(Sender.GetNodeData(Node)).Value.FieldName
   else
-  	CellText := PTagFieldRec(Sender.GetNodeData(Node)).Value
+  	CellText := PTagFieldRec(Sender.GetNodeData(Node)).Value.Value
 end;
 
 procedure TEditor.btnAddOggOtherFieldClick(Sender: TObject);
@@ -9243,7 +9265,7 @@ var
 begin
   tr := Sender.GetNodeData(Node);
 
-  if (length(tr.value) = 0) and (length(tr.fieldname) = 0) then
+  if (length(tr.Value.Value) = 0) and (length(tr.Value.Fieldname) = 0) then
   	sender.DeleteNode(Node)
   else
   if column = 0 then
@@ -9449,15 +9471,15 @@ var
 begin
 	tf := Sender.GetNodeData(Node);
 	case column of
-  	0: CellText := tf.FieldName;
+  	0: CellText := tf.Value.FieldName;
     1:
     begin
-    	if Q_SameText(tf.fieldName, 'TXXX') then
-      	CellText := tf.description
+    	if Q_SameText(tf.Value.FieldName, 'TXXX') then
+      	CellText := tf.Value.Description
       else
       	CellText := ' - '
     end;
-    2: CellText := tf.Value;
+    2: CellText := tf.Value.Value;
 	end
 end;
 
@@ -9471,9 +9493,9 @@ begin
 	tr.Gray := false;
 
   case column of
-  	0: tr.fieldName := newText;
-    1: tr.description := newText;
-    2: tr.value := newText
+  	0: tr.Value.FieldName := newText;
+    1: tr.Value.Description := newText;
+    2: tr.Value.Value := newText
   end
 end;
 
@@ -9484,7 +9506,7 @@ var
 begin
 	tf := Sender.GetNodeData(Node);
   if (column = 1) then
-  	Allowed := Q_SameText(tf.fieldName, 'TXXX')
+  	Allowed := Q_SameText(tf.Value.FieldName, 'TXXX')
   else
   	Allowed := true
 end;
