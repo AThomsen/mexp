@@ -849,6 +849,40 @@ type
     property List: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP} read FList write SetList;
   end;
 
+  TJvID3ContentTypeFrame = class(TJvID3Frame)
+  private
+    FGenreList: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP};
+    procedure SetGenreList(Value: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP});
+    procedure GenreListChanged(Sender: TObject);
+
+    function ReadInNewFormat: boolean;
+    function WriteInNewFormat: boolean;
+
+  protected
+    procedure ReadFrame; override;
+    procedure WriteFrame; override;
+
+    function MustWriteAsUTF: Boolean; override;
+
+    function GetFrameSize(const ToEncoding: TJvID3Encoding): Cardinal; override;
+
+    function GetOldFormatText: WideString;
+
+  public
+    class function Find(AController: TMyID3Controller): TJvID3ContentTypeFrame;
+    class function FindOrCreate(AController: TMyID3Controller): TJvID3ContentTypeFrame;
+    class function CanAddFrame(AController: TMyID3Controller; AFrameID: TJvID3FrameID): Boolean; override;
+
+    procedure AfterConstruction; override;
+    procedure BeforeDestruction; override;
+
+    procedure SetGenresFromString(const genres: WideString; const separator: WideChar);
+
+  published
+    property GenreList: {$IFDEF COMPILER12_UP}TStrings{$ELSE}TWideStrings{$ENDIF COMPILER12_UP} read FGenreList write SetGenreList;
+  end;
+
+
   TJvID3NumberFrame = class(TJvID3CustomTextFrame)
   private
     FValue: Cardinal;
@@ -869,7 +903,10 @@ type
   TJvID3TimestampFrame = class(TJvID3CustomTextFrame)
   private
     FValue: TDateTime;
+    FOnlyStoreYear: boolean;
     procedure SetValue(const AValue: TDateTime);
+    procedure SetYear(const AValue: integer);
+    function GetYear : integer;
   protected
     function GetText: WideString; override;
     procedure SetText(const ANewText: WideString); override;
@@ -880,6 +917,8 @@ type
     class function FindOrCreate(AController: TMyID3Controller; const AFrameID: TJvID3FrameID): TJvID3TimestampFrame;
   published
     property Value: TDateTime read FValue write SetValue;
+    property Year: integer read GetYear write SetYear;
+    property OnlyStoreYear: boolean read FOnlyStoreYear;
   end;
 
   TJvID3TextFrame = class(TJvID3CustomTextFrame)
@@ -1216,7 +1255,7 @@ uses
   JvJclUtils,
   JclBase, JclFileUtils, JclLogic, JclDateTime,
   JclStringConversions, JclWideStrings,
-  JvConsts, JvResources;
+  JvConsts, JvResources, StrUtils;
 
 {$IFDEF COMPILER12_UP}
 type
@@ -1305,7 +1344,7 @@ var
     TJvID3TextFrame, { fiAlbum }
     TJvID3TextFrame, { fiBPM } // was NumberFrame changed 03/15/10 DW
     TJvID3SimpleListFrame, { fiComposer }
-    TJvID3SimpleListFrame, { fiContentType }
+    TJvID3ContentTypeFrame, { fiContentType }
     TJvID3TextFrame, { fiCopyright }
     TJvID3TextFrame, { fiDate (deprecated as of 2.4) }
     TJvID3TimestampFrame, { fiEncodingTime (new in 2.4) }
@@ -1371,6 +1410,14 @@ var
    );
 
 //=== Local procedures =======================================================
+
+function IsInteger(const s:String): boolean;
+var
+  E, i: Integer;
+begin
+  Val(S, i, E);
+  Result := E = 0;
+end;
 
 function LengthUTF8Str(const SW: WideString): Integer;
 begin
@@ -2275,6 +2322,30 @@ begin
     if StrIComp(P, PChar(Result)) <> 0 then
       AddString(Copy(AGenre, Start, MaxInt));
   end;
+end;
+
+function AbbreviateGenre(var s: WideString): boolean;
+var
+  abbrvGenre: WideString;
+  genreId: integer;
+begin
+  abbrvGenre := '';
+  if SameText(s, 'remix') then abbrvGenre := 'RX'
+  else
+  if SameText(s, 'cover') then abbrvGenre := 'CR'
+  else
+  begin
+    genreId := ID3_GenreToID(s, true);
+    if (genreId >= 0) and (genreId <> 255) then abbrvGenre := IntToStr(genreId)
+  end;
+
+  if Length(abbrvGenre) > 0 then
+  begin
+    s := abbrvGenre;
+    Result := true
+  end
+  else
+    result := false
 end;
 
 procedure GetID3v2Version(const AFileName: string; var HasTag: Boolean;
@@ -7306,6 +7377,316 @@ begin
     inherited WriteFrame;
 end;
 
+//=== { TJvID3ContentTypeFrame } ====================================================
+
+
+procedure TJvID3ContentTypeFrame.AfterConstruction;
+begin
+  inherited AfterConstruction;
+
+  {$IFDEF COMPILER12_UP}
+  FGenreList := TJvID3StringList.Create;
+  TStringList(FGenreList).OnChange := GenreListChanged;
+  {$ELSE}
+  FGenreList := JclUnicode.TWideStringList.Create;
+  FGenreList.NormalizationForm := nfNone;
+  JclUnicode.TWideStringList(FGenreList).OnChange := GenreListChanged;
+  {$ENDIF COMPILER12_UP}
+end;
+
+procedure TJvID3ContentTypeFrame.BeforeDestruction;
+begin
+  inherited BeforeDestruction;
+  FGenreList.Free;
+end;
+
+
+class function TJvID3ContentTypeFrame.Find(AController: TMyID3Controller): TJvID3ContentTypeFrame;
+var
+  Frame: TJvID3Frame;
+begin
+  Result := nil;
+  if not Assigned(AController) or not AController.Active then
+    Exit;
+
+  Frame := AController.Frames.FindFrame(fiContentType);
+  if Frame is TJvID3ContentTypeFrame then
+    Result := TJvID3ContentTypeFrame(Frame);
+end;
+
+class function TJvID3ContentTypeFrame.FindOrCreate(AController: TMyID3Controller): TJvID3ContentTypeFrame;
+begin
+  if not Assigned(AController) then
+    ID3Error(RsEID3NoController);
+
+  Result := Find(AController);
+  if not Assigned(Result) then
+  begin
+    AController.CheckFrameClass(TJvID3ContentTypeFrame, fiContentType);
+    Result := TJvID3ContentTypeFrame(AController.AddFrame(fiContentType));
+  end;
+end;
+
+class function TJvID3ContentTypeFrame.CanAddFrame(AController: TMyID3Controller;
+  AFrameID: TJvID3FrameID): Boolean;
+begin
+  {  There may only be one text information frame of its kind in an tag }
+  Result := not AController.HasFrame(AFrameID) or
+    inherited CanAddFrame(AController, AFrameID);
+end;
+
+function TJvID3ContentTypeFrame.MustWriteAsUTF: Boolean;
+var
+  s: WideString;
+  i: integer;
+begin
+  if WriteInNewFormat then
+  begin
+    Result := false;
+    for i:=0 to FGenreList.Count-1 do
+    begin
+      s := FGenreList[i];
+      AbbreviateGenre(s);
+      Result := Result or HasNonISO_8859_1Chars(s)
+    end
+  end
+  else
+    Result := HasNonISO_8859_1Chars(GetOldFormatText);
+end;
+
+function TJvID3ContentTypeFrame.ReadInNewFormat: boolean;
+begin
+  Result := Controller.Version in [ive2_4, iveHigherThan2_4]
+end;
+
+function TJvID3ContentTypeFrame.WriteInNewFormat: boolean;
+begin
+  Result := Controller.WriteVersion in [ive2_4, iveHigherThan2_4]
+end;
+
+function TJvID3ContentTypeFrame.GetOldFormatText: WideString;
+var
+  i: integer;
+  customGenreText, s: WideString;
+begin
+  customGenreText := '';
+  result := '';
+
+  for i:=0 to FGenreList.Count-1 do
+  begin
+    s := Trim(FGenreList[i]);
+    if Length(s) = 0 then continue;
+
+    if AbbreviateGenre(s) then
+      result := result + '(' + s + ')'
+    else
+    begin
+      // 2.3 can contain only one custom genre so we add them with comma
+      if s[1] = '(' then s := '(' + s;  // text starting with ( must be escaped as ((
+
+      if Length(customGenreText) = 0 then
+        customGenreText := s
+      else
+        customGenreText := customGenreText + ', ' + s
+    end
+  end;
+
+  result := result + customGenreText
+end;
+
+function TJvID3ContentTypeFrame.GetFrameSize(const ToEncoding: TJvID3Encoding): Cardinal;
+var
+  i: Integer;
+  CharLength: Integer;
+  s: WideString;
+begin
+  { Encoding byte = 1 }
+  Result := 1;
+
+  // UTF-8 needs special treatment
+  if ToEncoding = ienUTF_8 then
+  begin
+    if WriteInNewFormat then
+    begin
+      for i:=0 to FGenreList.Count-1 do
+      begin
+        s := FGenreList[i];
+        AbbreviateGenre(s);
+        Inc(Result, Length(WideStringToUTF8(s)));
+        Inc(Result, 1) // separator
+      end
+    end
+    else
+    begin
+      Inc(Result, Length(WideStringToUTF8(GetOldFormatText)))
+    end;
+
+    Exit;
+  end;
+
+  CharLength := 0;
+
+  if WriteInNewFormat then
+  begin
+    for i := 0 to FGenreList.Count - 1 do
+    begin
+      s := FGenreList[i];
+      AbbreviateGenre(s);
+      Inc(CharLength, Length(s));
+      Inc(CharLength)  // separator
+    end
+  end
+  else
+  begin
+    Inc(CharLength, Length(GetOldFormatText))
+  end;
+
+  case ToEncoding of
+    ienISO_8859_1:
+      Inc(Result, CharLength);
+    ienUTF_16:
+      { Add the BOM's }
+      Inc(Result, FGenreList.Count * 2 + CharLength * 2);
+    ienUTF_16BE:
+      Inc(Result, CharLength * 2);
+  else
+    Error(RsEID3UnknownEncoding);
+  end;
+end;
+
+procedure TJvID3ContentTypeFrame.GenreListChanged(Sender: TObject);
+begin
+  if not (icsReading in Controller.FState) then
+    Changed;
+end;
+
+procedure TJvID3ContentTypeFrame.SetGenresFromString(const genres: WideString; const separator: WideChar);
+begin
+  FGenreList.Clear;
+  ExtractStrings(separator, genres, FGenreList);
+end;
+
+procedure TJvID3ContentTypeFrame.ReadFrame;
+
+  procedure AddToGenres(s: WideString);
+  var
+    tryToParseAsId: boolean;
+    genreId: integer;
+    parsedGenre: WideString;
+
+  begin
+    s := Trim(s);
+
+    if Length(s) = 0 then Exit;
+
+    if ReadInNewFormat then
+      tryToParseAsId := true
+    else
+    begin
+      if (s[1] = '(') and (s[Length(s)] = ')') then
+      begin
+        s := MidStr(s, 2, Length(s)-2);
+        tryToParseAsId := true
+      end
+      else
+        tryToParseAsId := false;
+    end;
+
+    if SameText(s, 'rx') then
+      s := 'Remix'
+    else
+    if SameText(s, 'cr') then
+      s := 'Cover'
+    else
+    if tryToParseAsId and IsInteger(s) then
+    begin
+      try
+        genreId := StrToInt(s);
+        parsedGenre := ID3_IDToGenre(genreId, true);
+        if Length(parsedGenre) > 0 then s := parsedGenre;
+      except
+      end;
+    end;
+
+    FGenreList.Add(s);
+  end;
+
+const
+  cMinBytes: array [TJvID3Encoding] of Byte = (2, 4, 4, 2);
+var
+  s, tmp: WideString;
+  i: integer;
+
+begin
+  FGenreList.Clear;
+
+  with Stream do
+  begin
+    ReadEncoding;
+
+    if ReadInNewFormat then
+    begin
+      while BytesTillEndOfFrame >= cMinBytes[Encoding] do
+      begin
+        ReadStringEnc(s);
+        AddToGenres(s)
+      end;
+    end
+    else
+    begin
+      ReadStringEnc(s);
+      tmp := '';
+
+      for i:=1 to Length(s) do
+      begin
+        if (s[i] = '(') and (Length(s) > i) and (s[i+1] = '(') and (Length(tmp) = 0) then
+          // '(' is escaped as '((', so skip one
+        else
+        begin
+          tmp := tmp + s[i];
+          if s[i] = ')' then
+          begin
+            AddToGenres(tmp);
+            tmp := ''
+          end
+        end
+      end;
+      AddToGenres(tmp);
+    end
+  end
+end;
+
+procedure TJvID3ContentTypeFrame.SetGenreList(Value: {$IFDEF COMPILER12_UP}TStrings{$ELSE}JclUnicode.TWideStrings{$ENDIF COMPILER12_UP});
+begin
+  FGenreList.Assign(Value);
+end;
+
+procedure TJvID3ContentTypeFrame.WriteFrame;
+var
+  i: Integer;
+  s: WideString;
+begin
+  with Stream do
+  begin
+    WriteEncoding;
+
+    if WriteInNewFormat then
+    begin
+      for I := 0 to FGenreList.Count - 1 do
+      begin
+        s := FGenreList[i];
+        AbbreviateGenre(s);
+        WriteStringEnc(s);
+        WriteTerminatorEnc;
+      end
+    end
+    else
+    begin
+      WriteStringEnc(GetOldFormatText)
+    end
+  end;
+end;
+
 //=== { TJvID3SkipFrame } ====================================================
 
 procedure TJvID3SkipFrame.ChangeToVersion(const ANewVersion: TJvID3Version);
@@ -8427,12 +8808,20 @@ begin
 
   DecodeDate(Value, Year, Month, Day);
   DecodeTime(Value, Hour, Min, Sec, Dummy);
-  if Year > 9999 then
-    Year := 9999;
-  if (Hour = 0) and (Min = 0) and (Sec = 0) then
-    Result := Format('%.4d-%.2d-%.2d', [Year, Month, Day])
+
+  if FOnlyStoreYear then
+  begin
+    Result := IntToStr(Year)
+  end
   else
-    Result := Format('%.4d-%.2d-%.2dT%.2d:%.2d:%.2d', [Year, Month, Day, Hour, Min, Sec]);
+  begin
+    if Year > 9999 then
+      Year := 9999;
+    if (Hour = 0) and (Min = 0) and (Sec = 0) then
+      Result := Format('%.4d-%.2d-%.2d', [Year, Month, Day])
+    else
+      Result := Format('%.4d-%.2d-%.2dT%.2d:%.2d:%.2d', [Year, Month, Day, Hour, Min, Sec]);
+  end
 end;
 
 procedure TJvID3TimestampFrame.SetText(const ANewText: WideString);
@@ -8479,9 +8868,10 @@ begin
   if I = SepPos[BusyWith] then
   begin
     TimeArray[BusyWith] := TimeArray[tkSec];
-    TimeArray[tkSec] := 0;
-    //Inc(BusyWith);
+    TimeArray[tkSec] := 0
   end;
+
+  FOnlyStoreYear := BusyWith = tkYear;
 
   try
     FValue := EncodeDate(TimeArray[tkYear], TimeArray[tkMonth], TimeArray[tkDay]);
@@ -8495,11 +8885,33 @@ end;
 
 procedure TJvID3TimestampFrame.SetValue(const AValue: TDateTime);
 begin
-  if AValue <> FValue then
+  if (AValue <> FValue) or FOnlyStoreYear then
   begin
     FValue := AValue;
+    FOnlyStoreYear := false;
     Changed;
   end;
+end;
+
+procedure TJvID3TimestampFrame.SetYear(const AValue: integer);
+var
+  valueAsDate: TDateTime;
+begin
+  valueAsDate := EncodeDate(AValue, 1, 1);
+
+  if (valueAsDate <> FValue) or not FOnlyStoreYear then
+  begin
+    FValue := valueAsDate;
+    FOnlyStoreYear := true;
+    Changed;
+  end;
+end;
+
+function TJvID3TimestampFrame.GetYear : integer;
+var
+  Month, Day, Hour, Min, Sec, Dummy: Word;
+begin
+  DecodeDate(FValue, Result, Month, Day)
 end;
 
 //=== { TJvID3URLFrame } =====================================================

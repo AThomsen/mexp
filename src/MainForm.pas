@@ -49,7 +49,8 @@ uses
 	MexpIniFile, ExPopupList, JvComponent, JvSearchFiles, Dialogs, jpeg,
   pngImage,
   GR32, GR32_Resamplers, OptimizedCode, MyTBits,
-  StringFunctions, VirtualTreesEx, JvComponentBase, syncobjs, MyId3v2Base, JvID3v2Types;
+  StringFunctions, VirtualTreesEx, JvComponentBase, syncobjs,
+  MyId3v2Base, JvID3v2Types, jclUnicode;
 
 type
 	// from Platfrom SDK
@@ -1636,7 +1637,7 @@ private
 
 		function HasMexpPrivateFrame(FId3v2:TMyID3Controller; deleteFrame:boolean=false): boolean;
 
-		function GetV2GenreString(p:pointer; version :TJvID3Version):String;
+		function GetGenresAsNullSeparatedString(rec:PRec):String;
 
     function NodeBelongsToTree(Node: PVirtualNode; tree: TVirtualStringTree; flatList: Boolean):Boolean;
 
@@ -6717,7 +6718,7 @@ begin
 end;
 
 Function TMainForm.ReadID3(Thread: TBMDExecuteThread; repairVBR: Boolean; const ScanPath, filename:string; master:integer; var audioType:byte; var addQuality:word; var artist, ArtistSortOrder, title, Album, Comment : string; var PartOfSet, rating: Byte; var year, Track, TotalTracks, kbps, Channels: integer; var duration : Cardinal;var Flags:TRecFlags;var Fsize:Cardinal; var CRC:LongWord; var freq:integer; var LastWriteTime:Integer; calculateCRC: boolean; out coverRec: PCoverRec; NewRec:PRec=nil; changeGroups:boolean=true; filenames:TQ_StringList=nil; playlistFiles:PPlaylistFiles = nil) : boolean;
-//den lange version
+// long version
 function AddGroupToRec(const GroupName: String; const Grps: array of byte; var GroupID:Integer):TAskGroupToRecResult;
 var
 	HasGroup, askgroup: Boolean;
@@ -6909,7 +6910,7 @@ var
   id3v2ContentFrame: TJvID3ContentFrame;
   id3v2SimpleListFrame: TJvID3SimpleListFrame;
   txxxFrame: TJvID3UserFrame;
-//  Genres : TStringList;
+  Id3v2ContentTypeFrame: TJvID3ContentTypeFrame;
   byte1, byte2 : byte;
   wrd:word;
   AudioDataStartPosition : integer;
@@ -7455,9 +7456,9 @@ Begin
           Q_TrimInPlace(s);
           if not Q_IsInteger(s) and assigned(Id3v2) then
           begin
-               //Id3v2.getAsciiText('TDRC', s);
-               s := Id3v2.GetText(fiRecordingTime);
-               Q_TrimInPlace(s)
+            //Id3v2.getAsciiText('TDRC', s);
+            s := Id3v2.GetText(fiRecordingTime);
+            Q_TrimInPlace(s)
           end;
           if IsInteger(s) then
              year := strtoint(s)
@@ -7493,21 +7494,13 @@ Begin
               if (Id3v2FrameId = fiUnsyncedLyrics) and not (Length(TJvId3ContentFrame(Id3v2.Frames[i]).Text) > 0) then     //Lyrics
                 Include(flags, rfHasLyrics)
               else
-              if Id3v2FrameId = fiContentType then     //genre
+              if Id3v2FrameId = fiContentType then     // genre
               begin
-                id3v2SimpleListFrame :=  TJvID3SimpleListFrame (id3v2.Frames[i]);
+                Id3v2ContentTypeFrame := TJvID3ContentTypeFrame (id3v2.Frames[i]);
 
-//                Genres := TStringlist.create;
-  //              Id3v2.getTCON(Genres, i, remix, cover);
-
-//                if remix then
-//                  Genres.Add('rx');
-//                if cover then
-//                  Genres.Add('cr');
-
-                for x:=0 to id3v2SimpleListFrame.List.Count-1 do
+                for x:=0 to Id3v2ContentTypeFrame.GenreList.Count-1 do
                 begin
-                  genreIndex := getGenreID(GenreToNiceGenre(id3v2SimpleListFrame.List[x]));
+                  genreIndex := getGenreID(Id3v2ContentTypeFrame.GenreList[x]);
                   if genreIndex >= 0 then
                   begin
                     b := false;
@@ -20800,7 +20793,7 @@ var
 	s: String;
   b1, b2, v2CommentFound: Boolean;
   i, id: Integer;
-  id3LstFrm: TJvID3SimpleListFrame;
+  id3ContentTypeFrm: TJvId3ContentTypeFrame;
   id3ContentFrm: TJvID3ContentFrame;
 begin
 	result := assigned(Fid3v1) and assigned(FId3v2);
@@ -20822,18 +20815,18 @@ begin
 
   	if result then	//compare genre
   	begin
-      id3LstFrm := TJvID3SimpleListFrame.Find(FId3v2, fiContentType);
-      if Assigned(id3LstFrm) then
+      id3ContentTypeFrm := TJvId3ContentTypeFrame.Find(FId3v2);
+      if Assigned(id3ContentTypeFrm) then
       begin
-        if (id3LstFrm.List.Count = 0) and (FId3v1.GenreID > MAXGENRES) then
+        if (id3ContentTypeFrm.GenreList.Count = 0) and (FId3v1.GenreID > MAXGENRES) then
         	result := true
         else
         begin
 	        b1 := false;	// check match on genre
           b2 := false;	// check if a valid v1 genre
-	        for i:=0 to id3LstFrm.List.Count-1 do
+	        for i:=0 to id3ContentTypeFrm.GenreList.Count-1 do
           begin
-            id := GetGenreID(GenreToNiceGenre(id3LstFrm.List[i]));
+            id := GetGenreID(id3ContentTypeFrm.GenreList[i]);
 	        	b1 := b1 or (Fid3v1.GenreID = id);
             b2 := b2 or (id <= MAXGENRES)
           end;
@@ -20979,71 +20972,16 @@ begin
   	result := 0
 end;
 
-function TMainForm.GetV2GenreString(p:pointer; version :TJvID3Version):String;
-function IsV1Genre(s:String):Boolean;
-var      i:integer;
-begin
-	result := false;
-	if length(trim(s))=0 then
-		result := true
-	else
-		for i:=0 to MaxGenres do
-			result := result or Q_SameText(s, GenreList.Strings[i])
-end;
-
-Function getRealV1Genre(s:String):integer;
+function TMainForm.GetGenresAsNullSeparatedString(rec: PRec): String;
 var
-	i:integer;
-begin
-	Q_trimInPlace(s);
-	result := 255;
-	for i:=0 to MAXGENRES do
-		if Q_sameText(GENRES[i], s) then result := i
-end;
-
-// Returns the string to save in the tag (TCON)
-var
-	value: string;
-	StrLst: TStringlist;
 	i: integer;
-	rec: PRec;
 begin
-	rec := p;
-	StrLst := TStringlist.Create;
-	for i:=0 to length(rec.Genre)-1 do
-		StrLst.add(GenreList.Strings[rec.Genre[i]]);
-
-	// find id3v1 genres
-	i:=0;
-	while i < StrLst.count do
-	begin
-	 if IsV1Genre(StrLst.strings[i]) then
-	 begin
-				if version < ive2_4 then
-          value := value + '(' + inttostr(getRealV1Genre(StrLst.strings[i])) + ')'
-				else
-          value := value + #0 + inttostr(getRealV1Genre(StrLst.strings[i]));
-				StrLst.Delete(i)
-	 end else inc(i)
-	end;
-
-	// add the rest of the genres
-	for i:=0 to StrLst.count-1 do
-	begin
-		if version < ive2_4 then
-		begin
-			if (length(StrLst.Strings[i])>3) and (StrLst.Strings[i][1]='(') then
-				value := value + '(' + StrLst.Strings[i]
-			else value := value + StrLst.Strings[i];
-				break // there can only be one "custom" genre in id3v2.3
-		end
-		else
-    	value := value + #0 + StrLst.Strings[i]
-	end;
-	StrLst.free;
-	Q_TrimInPlace(value);
-
-	result := value
+  Result := '';
+  for i:=0 to length(rec.Genre)-1 do
+  begin
+    if i > 0 then Result := Result + #0;
+		Result := Result + GenreList.Strings[rec.Genre[i]]
+  end
 end;
 
 procedure TMainForm.BeginWriteToFile(pr: Pointer);
@@ -21465,9 +21403,9 @@ begin
       if (i >=1) and (i<=9999) then
       begin
         if fieldId = fiYear then
-          TJvID3NumberFrame.FindOrCreate(FId3v2, fieldId).Value := StrToInt(value)
+          TJvID3NumberFrame.FindOrCreate(FId3v2, fieldId).Value := i
         else
-          TJvID3TimestampFrame.FindOrCreate(FId3v2, fieldId).Value := EncodeDate(i, 1, 1);
+          TJvID3TimestampFrame.FindOrCreate(FId3v2, fieldId).Year := i;
 
         exit
       end;
@@ -21480,7 +21418,7 @@ begin
 
   else if fieldId in [fiLeadArtist, fiContentType] then
   begin
-    TJvID3CustomTextFrame(TJvID3SimpleListFrame.FindOrCreate(FId3v2, fieldId)).Text := value
+    TJvID3ContentTypeFrame(TJvID3ContentTypeFrame.FindOrCreate(FId3v2)).SetGenresFromString(value, WideNull)
   end
   else
     ShowMessage(PChar('Update of Id3v2 field ' + ID3_FrameIDToString(fieldId) + ' not supported.'));
@@ -21759,7 +21697,7 @@ begin
         	SaveV2Frame(FId3v2, fiComment, GetFTextP(rec, FComment));
 
         if not ValuesInclude(FGenre) and (length(rec.Genre)>0) then
-        	SaveV2Frame(FId3v2, fiContentType, GetV2GenreString(rec, FId3v2.WriteVersion));
+        	SaveV2Frame(FId3v2, fiContentType, GetGenresAsNullSeparatedString(rec));
 
         SaveId3v2PrivateFrame(FId3v2, rec)
       end
@@ -22129,7 +22067,7 @@ begin
         else FId3v1.GenreID := g;
 
         if HasV2Tag then
-          SaveV2Frame(FId3v2, fiContentType, GetV2GenreString(rec, FId3V2.WriteVersion));
+          SaveV2Frame(FId3v2, fiContentType, GetGenresAsNullSeparatedString(rec));
 
         if HasApe then
           Fape.genre := values[i].value;
@@ -22160,7 +22098,7 @@ begin
             else FId3v1.GenreID := g;
 
             if HasV2Tag then
-              SaveV2Frame(FId3v2, fiContentType, GetV2GenreString(rec, FId3V2.WriteVersion));
+              SaveV2Frame(FId3v2, fiContentType, GetGenresAsNullSeparatedString(rec));
             if HasApe then
               Fape.genre := values[i].value;
             if HasOgg then
@@ -22207,7 +22145,7 @@ begin
               else FId3v1.GenreID := g;
 
               if HasV2Tag then
-                SaveV2Frame(FId3v2, fiContentType, GetV2GenreString(rec, FId3V2.WriteVersion));
+                SaveV2Frame(FId3v2, fiContentType, GetGenresAsNullSeparatedString(rec));
               if HasApe then
                 Fape.genre := s;
               if HasOgg then

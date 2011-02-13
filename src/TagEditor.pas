@@ -40,7 +40,7 @@ uses
   MpegPlus, OggVorbis, ApeTag, WMAfile, Monkey, WavFile,
   MyId3v2Base, JvID3v2Types,
   IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient, IdHTTP, MEXPtypes,
-  JvCombobox, JvExStdCtrls;
+  JvCombobox, JvExStdCtrls, JclUnicode;
 
 const
 	tagDB = 10;
@@ -688,12 +688,10 @@ PCustomFieldRec = ^TCustomFieldRec;
 				Function SaveV2Frame(id3v2: TMyID3Controller; FrameName:String; SR:PstatRec; version: TJvId3Version):Integer;
 				Function UpdateStringValueTabSync (SR:PstatRec; Obj:TControl; var value:string; id3v2Version: TJvId3Version = iveLowerThan2_2 ):boolean;
 				procedure SaveDBGenre(SR:PstatRec; pR:pointer);
-//        function GetStringFromSR(pSR:pointer; Comp:TComponent):String;
-				function GetV2GenreToSave(p:pointer; version: TJvId3Version):String;
-//        function FindMatchingDBcomp(comp:TComponent):Tcomponent;
         Procedure setBoxValue(Obj: TObject; Value:String; createNewUndo:Boolean; copyGraySettings:boolean=false; graySetting:boolean=false); overload;
         Function getBoxValue(Obj: TObject):String;
 //        Function getV1GenreFromTree(aTree:TBaseVirtualTree):String;
+//        Function GenresToNullSepString (ug: PUndoGenres): string;
 				Function getV1GenreFromUndoGenres(pUR:pointer; Id3v1Compatible: Boolean):String;
 				Procedure setV1Genre(s:String);
 				Function getRealV1Genre(s:String):integer;
@@ -1181,6 +1179,23 @@ begin
 end;
 
 { END OF        TGenresCombo }
+
+Function GenresToNullSepString (ug: PundoGenres): string;
+var
+  i: integer;
+begin
+  result := '';
+  for i:=0 to Length(ug.arr)-1 do
+    result := result + #0 + Trim(ug.arr[i]);
+
+  if ug.cover = cbChecked then
+    result := result + #0 + 'Cover';
+
+  if ug.remix = cbChecked then
+    result := result + #0 + 'Remix';
+
+  result := Trim(result)
+end;
 
 procedure TEditor.FormCreate(Sender: TObject);
 var
@@ -2300,22 +2315,6 @@ begin
     FillEmptyValue(CList[i], SR)
 end;
 
-function GetYear(dt: TDateTime): word;
-var
-  month, day: word;
-begin
-  DecodeDate(dt, result, month, day);
-end;
-
-Function getGenreText(S:String):String;
-begin
-		 if Q_IsInteger(S) and (StrToInt(S) >= 0) and (StrToInt(S) <= MaxGenres) then
-				result := GenreList[strToInt(S)]
-		 else
-		 if s <> '255' then result := s else result := ''
-end;
-
-
 //////// MAIN procedure TEditor.FillInValues(Pr:Pointer; pSR:Pointer; firstRun:boolean; updateStats:boolean=true);
 var
   id3v2: TMyID3Controller;
@@ -2323,6 +2322,7 @@ var
   id3LstFrame: TJvID3SimpleListFrame;
   id3CntFrame: TJvID3ContentFrame;
   id3DblLstFrame: TJvID3DoubleListFrame;
+  id3ContentTypeFrame: TJvID3ContentTypeFrame;
 
 	r : Prec;
   SR : PstatRec;
@@ -2807,7 +2807,7 @@ begin
         if Id3v2.FindFirstFrame(fiYear, id3Frame) then
           FillInValue(TYER, Integer(TJvID3NumberFrame(id3Frame).Value), SR)
         else if Id3v2.FindFirstFrame(fiRecordingTime, id3Frame) then
-          FillInValue(TYER, GetYear(TJvID3TimestampFrame(id3Frame).Value), SR)
+          FillInValue(TYER, TJvID3TimestampFrame(id3Frame).Year, SR)
         else
           FillInValue(TYER, '', SR);
 
@@ -2820,16 +2820,11 @@ begin
         //Content Type / Genre
         if Id3v2.FindFirstFrame(fiContentType, id3Frame) then
         begin
-          id3LstFrame := TJvID3SimpleListFrame(id3Frame);
-          setLength(Sarr, id3LstFrame.List.Count);
-          for x:=0 to id3LstFrame.List.Count-1 do
+          id3ContentTypeFrame := TJvID3ContentTypeFrame(id3Frame);
+          setLength(Sarr, id3ContentTypeFrame.GenreList.Count);
+          for x:=0 to id3ContentTypeFrame.GenreList.Count-1 do
           begin
-            if id3LstFrame.List[x] = 'RX' then
-              Sarr[x] := 'remix'
-            else if id3LstFrame.List[x] = 'CR' then
-              Sarr[x] := 'cover'
-            else
-              Sarr[x] := GetGenreText (GenreToNiceGenre (id3LstFrame.List[x]));
+            Sarr[x] := id3ContentTypeFrame.GenreList[x]
           end;
           FillInTCON(Sarr, SR);
         end
@@ -4431,7 +4426,7 @@ Procedure TEditor.FieldChanged(Sender: TObject; skipGrayOut:boolean=false);
 procedure SyncCopy(Source: TControl; undoCreated: Boolean);    //kopierer værdi fra database til de tag-værdier der måtte være muligt at skrive til
 var
 	CB: TCheckBox;
-	tagIdx, j: Integer;
+	tagIdx, j, i: Integer;
 	targetName: TStringArray;
   s: String;
 	target: TComponentArray;
@@ -4985,83 +4980,6 @@ begin
 	SaveThread.Start
 end;
 
-function TEditor.GetV2GenreToSave(p:pointer; version: TJvId3Version):String;
-// Return the string to save in TCON
-var     value : string;
-        i:integer;
-        StrLst : TStringlist;
-        UR : PundoRec;
-        undoGenres : PundoGenres;
-begin
-        UR := p;
-        value := '';
-        undoGenres := UR.p;
-
-        StrLst := TStringList.create;
-				for i:=0 to length(undoGenres.arr)-1 do
-        	strLst.add(trim(undoGenres.arr[i]));
-
-				//Løber listen igennen of finder Id3v1 tagsene
-        i:=0;
-        while i < StrLst.count do
-        begin
-						 if IsV1Genre(StrLst.strings[i]) then
-             begin
-									if (version = ive2_2) or (version = ive2_3) then value := value + '(' + inttostr(getRealV1Genre(StrLst.strings[i])) + ')';
-									if version = ive2_4 then value := value + #0 + inttostr(getRealV1Genre(StrLst.strings[i]));
-                  StrLst.Delete(i)
-             end else inc(i)
-        end;
-
-				if undoGenres.cover = cbChecked then
-        begin
-             if (version = ive2_2) or (version = ive2_3) then value := value + '(CR)';
-             if version = ive2_4 then value := value + #0 + 'CR'
-				end;
-        if undoGenres.remix = cbChecked then
-        begin
-             if (version = ive2_2) or (version = ive2_3) then value := value + '(RX)';
-             if version = ive2_4 then value := value + #0 + 'RX'
-        end;
-
-        // add the remaining genres
-        for i:=0 to StrLst.count-1 do
-        begin
-             if (version = ive2_2) or (version = ive2_3) then
-						 begin
-                  if (length(StrLst.Strings[i])>3) and (StrLst.Strings[i][1]='(') then
-                     value := value + '(' + StrLst.Strings[i]
-                  else value := value + StrLst.Strings[i];
-                       break // only one custom genre allowed in id3v 2/3
-                end;
-                if version = ive2_4 then value := value + #0 + StrLst.Strings[i]
-        end;
-        StrLst.free;
-        Q_TrimInPlace(value);
-
-        result := value
-end;
-
-{function TEditor.GetStringFromSR(pSR:pointer; Comp:TComponent):String;
-var     i:integer;
-				SR : PstatRec;
-        UR : PundoRec;
-        StrRec : PundoString;
-begin
-        result := '';
-        SR := pSR;
-        for i:=0 to length(SR.values)-1 do
-        begin
-             UR := SR.values[i];
-             if comp = UR.Obj then
-             begin
-                  StrRec := UR.p;
-                  result := StrRec.s;
-                  break
-             end
-        end
-end;        }
-
 Procedure TEditor.SaveDBGenre(SR:PstatRec; pR:pointer);
 // do as in UpdateStringValueTabSync but only on genre (DB)
 var      r:Prec;
@@ -5144,8 +5062,8 @@ begin
       else
       if (target = TCON) and (source[j] = genre) then
       begin
-        Assert (id3v2Version > iveLowerThan2_2, 'Idv2Version not set');
-        value := GetV2GenreToSave(sourceUR, id3v2Version);
+        // TODO: test denne før release af 0.1.2:
+        value := GenresToNullSepString(PUndoGenres(sourceUR.P));
         result := true
       end
       else
@@ -5322,6 +5240,7 @@ var
   clearSourceRec: boolean;
   sourceUR:PundoRec;
   ucf: PundoCustomFields;
+  undoGenres : PundoGenres;
 //  uc: PUndoComments;
   cf: PCustomField;
 begin
@@ -5503,7 +5422,7 @@ begin
         if frameId = fiYear then
           TJvID3NumberFrame(id3v2.AddFrame(fiYear)).Value := StrToInt(value)
         else if frameId = fiRecordingTime then
-          TJvID3TimestampFrame(id3v2.AddFrame(fiRecordingTime)).Value := EncodeDate(StrToInt(value), 1, 1)
+          TJvID3TimestampFrame(id3v2.AddFrame(fiRecordingTime)).Year := StrToInt(value)
      end
   end
   else //TCON / GENRE
@@ -5511,17 +5430,20 @@ begin
   begin
     DelFrame(fiContentType);
 
+//    TODO: find ud af hvad vi gør her (value skal kunne overføres fra UpdateStringValueTabSync
     if not UpdateStringValueTabSync(SR, Comp, value, version) then
     begin
       UR := doCreateUndo(TCON, false, false);
-      value := Trim(GetV2GenreToSave(UR, version));
+      undoGenres := UR.p;
+      //value := Trim(GetV2GenreToSave(UR, version));
+      value := GenresToNullSepString (undoGenres);
       doDeleteUndo(UR)
     end;
 
     // Done composing value
     if Length(value) > 0 then
     begin
-      TJvId3CustomTextFrame(id3v2.AddFrame(fiContentType)).Text := value
+      TJvID3ContentTypeFrame(id3v2.AddFrame(fiContentType)).SetGenresFromString(value, wideNull)
     end
   end
   else //COMMENTS
